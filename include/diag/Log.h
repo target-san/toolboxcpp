@@ -6,29 +6,29 @@
 */
 
 // Hard, unrecoverable error
-#define $logError($format, ...) $logErrorAt($LogCurrentTarget, $LogCurrentLocation, $format, __VA_ARGS__)
+#define $logError(...) $logErrorAt($LogCurrentTarget, $LogCurrentLocation, __VA_ARGS__)
 // An error which can be possibly handled somewhere up the code hierarchy
-#define $logWarn($format,  ...) $logWarnAt( $LogCurrentTarget, $LogCurrentLocation, $format, __VA_ARGS__)
+#define $logWarn( ...) $logWarnAt( $LogCurrentTarget, $LogCurrentLocation, __VA_ARGS__)
 // Informational message
-#define $logInfo($format,  ...) $logInfoAt( $LogCurrentTarget, $LogCurrentLocation, $format, __VA_ARGS__)
+#define $logInfo( ...) $logInfoAt( $LogCurrentTarget, $LogCurrentLocation, __VA_ARGS__)
 // Debug data, like state of some structure after operation
-#define $logDebug($format, ...) $logDebugAt($LogCurrentTarget, $LogCurrentLocation, $format, __VA_ARGS__)
+#define $logDebug(...) $logDebugAt($LogCurrentTarget, $LogCurrentLocation, __VA_ARGS__)
 // Highly-detailed tracing message - function enter/leave, exception being wrapped with additional context etc.
-#define $logTrace($format, ...) $logTraceAt($LogCurrentTarget, $LogCurrentLocation, $format, __VA_ARGS__)
+#define $logTrace(...) $logTraceAt($LogCurrentTarget, $LogCurrentLocation, __VA_ARGS__)
 
 /*
     Conditional logging macros - use these to write messages to log under certain condition
 */
 
-#define $logErrorIf($cond, $format, ...) (($cond) ? $logError($format, __VA_ARGS__) : (void()) )
+#define $logErrorIf($cond, ...) (($cond) ? $logError(__VA_ARGS__) : (void()) )
 // An error which can be possibly handled somewhere up the code hierarchy
-#define $logWarnIf($cond, $format,  ...) (($cond) ? $logWarn( $format, __VA_ARGS__) : (void()) )
+#define $logWarnIf($cond,  ...) (($cond) ? $logWarn( __VA_ARGS__) : (void()) )
 // Informational message
-#define $logInfoIf($cond, $format,  ...) (($cond) ? $logInfo( $format, __VA_ARGS__) : (void()) )
+#define $logInfoIf($cond,  ...) (($cond) ? $logInfo( __VA_ARGS__) : (void()) )
 // Debug data, like state of some structure after operation
-#define $logDebugIf($cond, $format, ...) (($cond) ? $logDebug($format, __VA_ARGS__) : (void()) )
+#define $logDebugIf($cond, ...) (($cond) ? $logDebug(__VA_ARGS__) : (void()) )
 // Highly-detailed tracing message - function enter/leave, exception being wrapped with additional context etc.
-#define $logTraceIf($cond, $format, ...) (($cond) ? $logTrace($format, __VA_ARGS__) : (void()) )
+#define $logTraceIf($cond, ...) (($cond) ? $logTrace(__VA_ARGS__) : (void()) )
 
 /** Establish named log target till the end of current translation unit
     Only string literals can be used
@@ -37,34 +37,33 @@
     @param  $identifier String literal which denotes current logging target
 */
 #define $LogTarget($identifier) static constexpr ::$LogNS::Target __getLogTarget__(::$LogNS::impl::AdlTag) { return ($identifier); }
-/*
+/**
     Logging macros which are specialized by severity but allow to specify custom target and location
     May be used in cases where logging macro is invoked through some intermediate code,
     and what matters is the invocation site of that code
     
     @param[in] $target      Target name
     @param[in] $location    File and line where logging happens
-    @param[in] $format      Format string
 */
-#define $logErrorAt($target, $location, $format, ...) $logWriteRaw(::$LogNS::Severity::Error,   $target, $location, $format, __VA_ARGS__)
-#define $logWarnAt( $target, $location, $format, ...) $logWriteRaw(::$LogNS::Severity::Warning, $target, $location, $format, __VA_ARGS__)
-#define $logInfoAt( $target, $location, $format, ...) $logWriteRaw(::$LogNS::Severity::Info,    $target, $location, $format, __VA_ARGS__)
+#define $logErrorAt($target, $location, ...) $logWriteRaw(::$LogNS::Severity::Error,   $target, $location, __VA_ARGS__)
+#define $logWarnAt( $target, $location, ...) $logWriteRaw(::$LogNS::Severity::Warning, $target, $location, __VA_ARGS__)
+#define $logInfoAt( $target, $location, ...) $logWriteRaw(::$LogNS::Severity::Info,    $target, $location, __VA_ARGS__)
 /*
     Two lowest levels of logging are compiled-in only in debug mode or if explicitly enabled via macro
 */
 #if (defined _DEBUG) || (defined LOG_DETAILED)
-#   define $logDebugAt($target, $location, $format, ...) $logWriteRaw(::$LogNS::Severity::Debug, $target, $location, $format, __VA_ARGS__)
-#   define $logTraceAt($target, $location, $format, ...) $logWriteRaw(::$LogNS::Severity::Trace, $target, $location, $format, __VA_ARGS__)
+#   define $logDebugAt($target, $location, ...) $logWriteRaw(::$LogNS::Severity::Debug, $target, $location, __VA_ARGS__)
+#   define $logTraceAt($target, $location, ...) $logWriteRaw(::$LogNS::Severity::Trace, $target, $location, __VA_ARGS__)
 #else
-#   define $logDebugAt($target, $location, $format, ...) (void())
-#   define $logTraceAt($target, $location, $format, ...) (void())
+#   define $logDebugAt($target, $location, ...) (void())
+#   define $logTraceAt($target, $location, ...) (void())
 #endif
 /** The most explicit log writing macro. Does not infer any info from its current context
     
     @param[in] $severity    log severity level
     @param[in] $target      log target location, like the name of current module
     @param[in] $location    file and line which should be used in log message as location
-    @param[in] $first       First object to write, usually string
+    @param[in] $first       First object to write, usually string; just ensures there's anything to write
 */
 #define $logWriteRaw($severity, $target, $location, $first, ...) ( \
     ::$LogNS::impl::isEnabled($severity, $target) \
@@ -82,12 +81,11 @@
     which accepts `std::ostream&` and returns nothing
 */
 #ifndef $logFormat
-/** @brief Default log formatting method
-    @param  $first  First formatting element, not necessarily string; just ensures there's any message to write
-*/
 //  Contains implementation of defaultFormat which is a bit complicated to be shown here
 #   include "Log.ipp"
-#   define $logFormat($first, ...) (::$LogNS::impl::defaultFormat($first, __VA_ARGS__))
+/** @brief Default log formatting method
+*/
+#   define $logFormat(...) (::$LogNS::impl::defaultFormat(__VA_ARGS__))
 #endif
 
 /// Namespace where logging stuff is stored. In case one would want to relocate all this
