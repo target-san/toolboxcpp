@@ -99,7 +99,8 @@ struct Location
     const char* func;
 };
 
-using Channel = const char*;
+using Channel       = const char*;
+using WriterFunc    = util::FuncRef<void(std::ostream&)>;
 
 namespace impl
 {
@@ -122,7 +123,7 @@ bool is_enabled(Severity severity, Channel channel, Location location);
     @param  location    File name and line number where logging happens
     @param  writer      Function which receives stream and writes logging message into it
 */
-void write(Severity severity, Channel channel, Location location, util::FuncRef<void(std::ostream&)> writer);
+void write(Severity severity, Channel channel, Location location, WriterFunc writer);
 /// Enables ADL-based deduction on which "log channel" function to use
 struct AdlTag {};
 // Returns default log channel, empty string in our case

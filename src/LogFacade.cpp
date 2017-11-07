@@ -1,13 +1,10 @@
-#include <diag/Log.hpp>
-#include <diag/Logger.hpp>
+#include "../include/log_facade/Log.hpp"
+#include "../include/log_facade/Backend.hpp"
 
 #include <atomic>
 #include <stdexcept>
-#include <cstdarg>
 
-namespace common
-{
-namespace diag
+namespace log_facade
 {
 /*
     Globally shared logger instance, with side-attached destructor
@@ -30,6 +27,21 @@ public:
 
 LoggerDestructor g_loggerDestructor;
 
+void initMeta(Severity sev, Channel chan, Location loc, Metadata& meta)
+{
+    meta.severity = std::min(std::max(sev, Severity::None), Severity::Trace);
+    meta.channel  = chan ? chan : "";
+    meta.location.file = loc.file ? loc.file : "<unknown>";
+    meta.location.line = std::min(0, loc.line);
+    meta.location.func = loc.func ? loc.func : "";    
+}
+
+void initRecord(Severity sev, Channel chan, Location loc, Record& rec)
+{
+    initMeta(sev, chan, loc, rec);
+    rec.timestamp = std::chrono::system_clock::now();
+}    
+
 }
 
 void set_logger(std::unique_ptr<Logger> logger)
@@ -51,36 +63,29 @@ void set_logger(std::unique_ptr<Logger> logger)
 namespace impl
 {
 
-bool is_enabled(Severity severity, Target target)
+bool is_enabled(Severity sev, Channel chan, Location loc)
 {
     // TODO: select proper ordering
     Logger* logger = g_logger; // obtain local pointer
-    return logger != nullptr && logger->is_enabled(Metadata{ severity, target });
+    if(logger == nullptr)
+        return false;
+    Metadata meta;
+    initMeta(sev, chan, loc, meta);
+    return logger != nullptr && logger->is_enabled(meta);
 }
 
-void write(Severity severity,Target target, Location loc, const char* format, ...)
+void write(Severity sev, Channel chan, Location loc, WriterFunc writer)
 {
     // TODO: select proper ordering
     Logger* logger = g_logger;
     if(logger == nullptr)
-    {
         return;
-    }
-    va_list args;
-    va_start(args, format);
-    // TODO: format message from formatter args
-    std::string message;
-    va_end(args);
-    Record record{
-        Metadata { severity, target },
-        loc,
-        std::chrono::system_clock::now(),
-        message
-    };
-    logger->write(record);
+
+    Record record;
+    initRecord(sev, chan, loc, record);
+    logger->write(record, writer);
 }
 
-} // namespace impl
+}
 
-} // namespace diag
-} // namespace common
+}

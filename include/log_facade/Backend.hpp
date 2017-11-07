@@ -2,7 +2,7 @@
 
 #include <chrono>
 #include <memory>
-#include "Facade.hpp"
+#include "Log.hpp"
 
 namespace log_facade
 {
@@ -18,15 +18,14 @@ using Timestamp = std::chrono::system_clock::time_point;
 
 struct Record: public Metadata
 {
-    Timestamp                           timestamp;
-    util::FuncRef<void(std::ostream&)>  message;
+    Timestamp   timestamp;
 };
 
 class Logger
 {
 public:
     virtual bool is_enabled(Metadata const&) = 0;
-    virtual void write(Record const&) = 0;
+    virtual void write(Record const&, WriterFunc writer) = 0;
 
     virtual ~Logger() {}
 };

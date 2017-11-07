@@ -1,16 +1,25 @@
 #pragma once
-
+/** Set of useful combinators and wrappers for constructing your own logger implementation
+ *  Completely independent of any kind of concrete implementation
+ */
 #include <string>
 #include <tuple>
 #include <utility>
 
-#include "Facade.h"
+#include "Log.h"
 #include "Backend.h"
 #include "../util/FoldTuple.h"
 
 namespace log_facade
 {
-
+/** Wraps any type which conforms to Logger concept
+ *  into type which implements Logger interface
+ *  In most cases, dynamic invocation is used only once,
+ *  when public functions delegate to concrete logger implementation,
+ *  and not needed inside composite logger itself - as all types are usually
+ *  known there
+ *  @tparam L Type of actual logger stored inside        
+ */
 template<typename L>
 class LoggerBox: public Logger
 {
@@ -24,15 +33,19 @@ public:
     {
         return _logger.is_enabled(meta);
     }
-    virtual void write(Record const& rec) override
+    virtual void write(Record const& rec, WriterFunc writer) override
     {
-        _logger.write(rec);
+        _logger.write(rec, writer);
     }
 
 private:
     L _logger;
 };
-
+/** Packs any logger-compatible type into LoggerBox
+ *  and sets as current logger
+ *  @tparam L       Logger type being wrapped
+ *  @param  logger  Logger being wrapped
+ */
 template<typename L>
 void set_logger(L&& logger)
 {
@@ -55,10 +68,10 @@ public:
         return util::foldTuple(_loggers, false, [&](auto acc, auto& logger) { return acc || logger.is_enabled(meta); });
     }
 
-    void write(Record const& rec)
+    void write(Record const& rec, WriterFunc writer)
     {
         util::foldTuple(_loggers, 0, [&record](auto acc, auto& logger) {
-            return (logger.is_enabled(rec) ? logger.write(rec) : (void()) ), acc;
+            return (logger.is_enabled(rec) ? logger.write(rec, writer) : (void()) ), acc;
         });
     }
 
@@ -100,9 +113,9 @@ public:
         return _filter(meta) && _logger.is_enabled(meta);
     }
 
-    void write(Record const& record)
+    void write(Record const& record, WriterFunc writer)
     {
-        _logger.write(record);
+        _logger.write(record, writer);
     }
 
 private:
@@ -129,12 +142,10 @@ public:
 
     bool is_enabled(Metadata const& meta) { return _logger.is_enabled(meta); }
 
-    void write(Record const& rec)
+    void write(Record const& rec, WriterFunc writer)
     {
-        auto format_proxy = [&] (std::ostream& ost) { _formatter(ost, rec); };
-        Record inner = rec;
-        inner = format_proxy;
-        _logger.write(inner);
+        auto format_proxy = [&] (std::ostream& ost) { _formatter(ost, rec, writer); };
+        _logger.write(rec, writer);
     }
 
 private:
