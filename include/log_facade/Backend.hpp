@@ -29,7 +29,11 @@ public:
 
     virtual ~Logger() {}
 };
-
-void set_logger(std::unique_ptr<Logger>);
+/** @brief Set passed in object as current logger
+ *  @param      logger                  On-heap logger object
+ *  @exception  std::invalid_argument   If passed in unique_ptr is nullptr
+ *  @exception  std::logic_error        If logger was already initialized
+ */
+void set_logger(std::unique_ptr<Logger> logger);
 
 } // namespace diag

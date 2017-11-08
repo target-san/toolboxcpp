@@ -19,7 +19,7 @@ void initMeta(Severity sev, Channel chan, Location loc, Metadata& meta)
     meta.severity = std::min(std::max(sev, Severity::None), Severity::Trace);
     meta.channel  = chan ? chan : "";
     meta.location.file = loc.file ? loc.file : "<unknown>";
-    meta.location.line = std::min(0, loc.line);
+    meta.location.line = std::max(0, loc.line);
     meta.location.func = loc.func ? loc.func : "";    
 }
 
