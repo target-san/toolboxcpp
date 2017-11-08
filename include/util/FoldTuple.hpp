@@ -70,12 +70,5 @@ decltype(auto) fold_tuple(std::tuple<Ts...>&& tuple, Acc&& accumulator, Fn&& fol
 {
     return impl::fold_impl(std::move(tuple), std::forward<Acc>(accumulator), std::forward<Fn>(folder), std::index_sequence_for<Ts...>{});
 }
-/*
-template<typename Acc, typename Fn, typename... Ts>
-decltype(auto) fold_tuple(std::tuple<Ts...> tuple, Acc&& accumulator, Fn&& folder)
-{
-    return impl::fold_impl(std::move(tuple), std::forward<Acc>(accumulator), std::forward<Fn>(folder), std::index_sequence_for<Ts...>);
-}
-*/
 
 }
