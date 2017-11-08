@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 2.8.12)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD          11)
 
+option(LOG_FACADE_TESTS "Add compilation of log_facade's own unittests" OFF)
+
 project(log_facade)
 
 set(SOURCES
@@ -36,3 +38,12 @@ target_include_directories(log_facade PUBLIC include PRIVATE src)
 
 add_library(log_facade_shared   SHARED ${SOURCES})
 target_include_directories(log_facade_shared PUBLIC include PRIVATE src)
+
+if(LOG_FACADE_TESTS)
+    enable_testing()
+    option(gtest_force_shared_crt "" ON)
+    add_subdirectory(googletest/googletest)
+    add_executable(log_facade_unittest src/unittest.cpp)
+    target_link_libraries(log_facade_unittest gtest_main log_facade)
+    add_test(NAME log_facade_unittest COMMAND $<TARGET_FILE:log_facade_unittest>)
+endif()

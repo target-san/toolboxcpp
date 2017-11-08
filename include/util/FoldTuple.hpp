@@ -53,28 +53,29 @@ decltype(auto) fold_impl(Tuple&& tuple, Acc&& acc, Fn&& func, std::index_sequenc
     
     @return             Final accumulator value, produced by last operation
 */
-template<typename... Ts, typename Acc, typename Fn>
+template<typename Acc, typename Fn, typename... Ts>
 decltype(auto) fold_tuple(std::tuple<Ts...> const& tuple, Acc&& accumulator, Fn&& folder)
 {
-    return impl::fold_impl(tuple, std::forward<Acc>(accumulator), std::forward<Fn>(folder), std::index_sequence_for<Ts...>);
+    return impl::fold_impl(tuple, std::forward<Acc>(accumulator), std::forward<Fn>(folder), std::index_sequence_for<Ts...>{});
 }
 
-template<typename... Ts, typename Acc, typename Fn>
+template<typename Acc, typename Fn, typename... Ts>
 decltype(auto) fold_tuple(std::tuple<Ts...>& tuple, Acc&& accumulator, Fn&& folder)
 {
-    return impl::fold_impl(tuple, std::forward<Acc>(accumulator), std::forward<Fn>(folder), std::index_sequence_for<Ts...>);
+    return impl::fold_impl(tuple, std::forward<Acc>(accumulator), std::forward<Fn>(folder), std::index_sequence_for<Ts...>{});
 }
 
-template<typename... Ts, typename Acc, typename Fn>
+template<typename Acc, typename Fn, typename... Ts>
 decltype(auto) fold_tuple(std::tuple<Ts...>&& tuple, Acc&& accumulator, Fn&& folder)
 {
-    return impl::fold_impl(std::move(tuple), std::forward<Acc>(accumulator), std::forward<Fn>(folder), std::index_sequence_for<Ts...>);
+    return impl::fold_impl(std::move(tuple), std::forward<Acc>(accumulator), std::forward<Fn>(folder), std::index_sequence_for<Ts...>{});
 }
-
-template<typename... Ts, typename Acc, typename Fn>
+/*
+template<typename Acc, typename Fn, typename... Ts>
 decltype(auto) fold_tuple(std::tuple<Ts...> tuple, Acc&& accumulator, Fn&& folder)
 {
     return impl::fold_impl(std::move(tuple), std::forward<Acc>(accumulator), std::forward<Fn>(folder), std::index_sequence_for<Ts...>);
 }
+*/
 
 }
