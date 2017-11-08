@@ -134,4 +134,4 @@ static inline Channel __log_facade_get_channel__(...)
 
 } // namespace impl
 
-} // namespace diag
+} // namespace log_facade

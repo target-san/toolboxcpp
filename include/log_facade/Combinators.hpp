@@ -6,9 +6,9 @@
 #include <tuple>
 #include <utility>
 
-#include "Log.h"
-#include "Backend.h"
-#include "../util/FoldTuple.h"
+#include "Log.hpp"
+#include "Backend.hpp"
+#include "../util/FoldTuple.hpp"
 
 namespace log_facade
 {
@@ -56,6 +56,31 @@ void set_logger(L&& logger)
 template<typename... Logs>
 class MultiLogger
 {
+private:
+    struct IsEnabled
+    {
+        Metadata const& meta;
+
+        template<typename T>
+        bool operator()(bool enabled, T&& logger)
+        {
+            return enabled || logger.is_enabled(meta);
+        }
+    };
+
+    struct Write
+    {
+        Record const& record;
+        WriterFunc writer;
+
+        template<typename T>
+        int operator()(int, T&& logger)
+        {
+            if(logger.is_enabled(record))
+                logger.write(record, writer);
+            return 0;
+        }
+    };
 public:
 
     template<typename... Args>
@@ -65,14 +90,12 @@ public:
 
     bool is_enabled(Metadata const& meta)
     {
-        return util::fold_tuple(_loggers, false, [&](auto acc, auto& logger) { return acc || logger.is_enabled(meta); });
+        return util::fold_tuple(_loggers, false, IsEnabled { meta });
     }
 
     void write(Record const& rec, WriterFunc writer)
     {
-        util::foldTuple(_loggers, 0, [&record](auto acc, auto& logger) {
-            return (logger.is_enabled(rec) ? logger.write(rec, writer) : (void()) ), acc;
-        });
+        util::foldTuple(_loggers, 0, Write{ rec, writer });
     }
 
 private:

@@ -45,6 +45,18 @@ template<typename T> struct ArgWrap<T&&>        : public ValArgWrap<T>       {};
 template<typename... Args>
 struct DefaultFormatter
 {
+private:
+    struct ArgWriter
+    {
+        std::ostream& ost;
+
+        template<typename T>
+        int operator()(int, T&& arg)
+        {
+            ost << *arg;
+            return 0;
+        }
+    };
 public:
     DefaultFormatter(Args... args)
         : _args(std::forward<Args>(args)...)
@@ -52,7 +64,7 @@ public:
     
     void operator () (std::ostream& ost)
     {
-        util::foldTuple(_args, 0, [&ost] (int, auto&& arg) { ost << *arg; return 0; });
+        util::fold_tuple(_args, 0, ArgWriter { ost });
     }
 
 private:
