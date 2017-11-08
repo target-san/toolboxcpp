@@ -13,20 +13,6 @@ namespace {
 
 std::atomic<Logger*> g_logger(nullptr);
 
-class LoggerDestructor
-{
-public:
-    LoggerDestructor() = default;
-    ~LoggerDestructor()
-    {
-        // extract pointer from g_logger and drop it, replacing with nullptr
-        // TODO: select proper ordering
-        delete g_logger.exchange(nullptr);
-    }
-};
-
-LoggerDestructor g_loggerDestructor;
-
 void initMeta(Severity sev, Channel chan, Location loc, Metadata& meta)
 {
     meta.severity = std::min(std::max(sev, Severity::None), Severity::Trace);
