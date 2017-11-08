@@ -44,7 +44,7 @@ public:
     template<class Fn>
     FuncRef(Fn&& func)
         : _context(reinterpret_cast<void*>(&func))
-        , _caller(&ObjectCaller<std::decay_t<Fn>>)
+        , _caller(&ObjectCaller<typename std::decay<Fn>::type>)
     { }
     /** @brief Wraps any compatible free function
     */
