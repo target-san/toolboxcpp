@@ -65,7 +65,7 @@ public:
 
     bool is_enabled(Metadata const& meta)
     {
-        return util::foldTuple(_loggers, false, [&](auto acc, auto& logger) { return acc || logger.is_enabled(meta); });
+        return util::fold_tuple(_loggers, false, [&](auto acc, auto& logger) { return acc || logger.is_enabled(meta); });
     }
 
     void write(Record const& rec, WriterFunc writer)
