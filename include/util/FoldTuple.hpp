@@ -20,7 +20,7 @@ decltype(auto) fold_impl(Tuple&&, Acc&& acc, Fn&&, std::index_sequence<>)
     1. Call folder func over accumulator and I'th tuple element
     2. Recursive call over tuple, new accumulator, folder func and the rest of index sequence
 */
-template<typename Tuple, typename Acc, typename Fn, size_t I, size_t Is...>
+template<typename Tuple, typename Acc, typename Fn, size_t I, size_t... Is>
 decltype(auto) fold_impl(Tuple&& tuple, Acc&& acc, Fn&& func, std::index_sequence<I, Is...>)
 {
     decltype(auto) next = func(std::forward<Acc>(acc), std::get<I>(std::forward<Tuple>(tuple)));

@@ -1,12 +1,12 @@
 #include <tuple>
 #include <utility>
-#include "../util/FoldTuple.h"
+#include "../util/FoldTuple.hpp"
 /**
     Implementation of default formatter which captures all passed in variables into object
     and dumps them into provided stream on-demand
 */
 
-namespace diag
+namespace log_facade
 {
 namespace impl
 {
@@ -37,10 +37,9 @@ private:
     T _val;
 };
 
-template<typename T> struct ArgWrap;
+template<typename T> struct ArgWrap             : public ValArgWrap<T>       {};
 template<typename T> struct ArgWrap<T&>         : public RefArgWrap<T>       {};
 template<typename T> struct ArgWrap<T const&>   : public RefArgWrap<const T> {};
-template<typename T> struct ArgWrap<T>          : public ValArgWrap<T>       {};
 template<typename T> struct ArgWrap<T&&>        : public ValArgWrap<T>       {};
 
 template<typename... Args>
@@ -61,7 +60,7 @@ private:
 };
 
 template<typename... Args>
-DefaultFormatter<Args...> defaultFormat(Args&&... args)
+DefaultFormatter<Args...> default_format(Args&&... args)
 {
     return DefaultFormatter<Args...>(std::forward<Args>(args)...);
 }

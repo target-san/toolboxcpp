@@ -1,6 +1,7 @@
 #include "../include/log_facade/Log.hpp"
 #include "../include/log_facade/Backend.hpp"
 
+#include <algorithm>
 #include <atomic>
 #include <stdexcept>
 

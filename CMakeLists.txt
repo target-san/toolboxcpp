@@ -7,6 +7,7 @@ project(log_facade)
 
 set(SOURCES
     include/log_facade/Log.hpp
+    include/log_facade/DefaultFmt.hpp
     include/log_facade/Backend.hpp
     include/log_facade/Combinators.hpp
     
@@ -15,6 +16,20 @@ set(SOURCES
     
     src/LogFacade.cpp
 )
+
+source_group(include\\log_facade FILES
+    include/log_facade/Log.hpp
+    include/log_facade/DefaultFmt.hpp
+    include/log_facade/Backend.hpp
+    include/log_facade/Combinators.hpp
+)
+
+source_group(include\\util FILES
+    include/util/FuncRef.hpp
+    include/util/FoldTuple.hpp
+)
+
+source_group(src FILES src/LogFacade.cpp)
 
 add_library(log_facade          STATIC ${SOURCES})
 target_include_directories(log_facade PUBLIC include PRIVATE src)

@@ -1,6 +1,6 @@
 #pragma once
 #include <ostream>
-#include "../util/FuncRef.h"
+#include "../util/FuncRef.hpp"
 /*
     Logging macros - use these to write messages to log
 */
@@ -68,7 +68,7 @@
 */
 #ifndef $log_format
 //  Contains implementation of defaultFormat which is a bit complicated to be shown here
-#   include "Log.ipp"
+#   include "DefaultFmt.hpp"
 /** @brief Default log formatting method
 */
 #   define $log_format(...) (::log_facade::impl::default_format(__VA_ARGS__))
