@@ -59,37 +59,37 @@ TEST(LogFacade, BasicMacro)
     log_facade::Location loc {};
     // NB: we set local meta on the same line as log message, to ensure it's the same
     $log_error("Say Hi to the world!"); sev = log_facade::Severity::Error; chan = $LogCurrentChannel; loc = $LogCurrentLocation;
-    EXPECT_EQ(g_last_metadata.severity, sev);
-    EXPECT_EQ(g_last_metadata.channel,  chan);
-    EXPECT_EQ(g_last_metadata.location.file, loc.file);
-    EXPECT_EQ(g_last_metadata.location.line, loc.line);
-    EXPECT_EQ(g_last_metadata.location.func, loc.func);
+    EXPECT_EQ   (g_last_metadata.severity, sev);
+    EXPECT_STREQ(g_last_metadata.channel,  chan);
+    EXPECT_STREQ(g_last_metadata.location.file, loc.file);
+    EXPECT_EQ   (g_last_metadata.location.line, loc.line);
+    EXPECT_STREQ(g_last_metadata.location.func, loc.func);
 
     $log_warn("Say Hi to the world!"); sev = log_facade::Severity::Warning; chan = $LogCurrentChannel; loc = $LogCurrentLocation;
-    EXPECT_EQ(g_last_metadata.severity, sev);
-    EXPECT_EQ(g_last_metadata.channel,  chan);
-    EXPECT_EQ(g_last_metadata.location.file, loc.file);
-    EXPECT_EQ(g_last_metadata.location.line, loc.line);
-    EXPECT_EQ(g_last_metadata.location.func, loc.func);
+    EXPECT_EQ   (g_last_metadata.severity, sev);
+    EXPECT_STREQ(g_last_metadata.channel,  chan);
+    EXPECT_STREQ(g_last_metadata.location.file, loc.file);
+    EXPECT_EQ   (g_last_metadata.location.line, loc.line);
+    EXPECT_STREQ(g_last_metadata.location.func, loc.func);
 
     $log_info("Say Hi to the world!"); sev = log_facade::Severity::Info; chan = $LogCurrentChannel; loc = $LogCurrentLocation;
-    EXPECT_EQ(g_last_metadata.severity, sev);
-    EXPECT_EQ(g_last_metadata.channel,  chan);
-    EXPECT_EQ(g_last_metadata.location.file, loc.file);
-    EXPECT_EQ(g_last_metadata.location.line, loc.line);
-    EXPECT_EQ(g_last_metadata.location.func, loc.func);
+    EXPECT_EQ   (g_last_metadata.severity, sev);
+    EXPECT_STREQ(g_last_metadata.channel,  chan);
+    EXPECT_STREQ(g_last_metadata.location.file, loc.file);
+    EXPECT_EQ   (g_last_metadata.location.line, loc.line);
+    EXPECT_STREQ(g_last_metadata.location.func, loc.func);
 
     $log_debug("Say Hi to the world!"); sev = log_facade::Severity::Debug; chan = $LogCurrentChannel; loc = $LogCurrentLocation;
-    EXPECT_EQ(g_last_metadata.severity, sev);
-    EXPECT_EQ(g_last_metadata.channel,  chan);
-    EXPECT_EQ(g_last_metadata.location.file, loc.file);
-    EXPECT_EQ(g_last_metadata.location.line, loc.line);
-    EXPECT_EQ(g_last_metadata.location.func, loc.func);
+    EXPECT_EQ   (g_last_metadata.severity, sev);
+    EXPECT_STREQ(g_last_metadata.channel,  chan);
+    EXPECT_STREQ(g_last_metadata.location.file, loc.file);
+    EXPECT_EQ   (g_last_metadata.location.line, loc.line);
+    EXPECT_STREQ(g_last_metadata.location.func, loc.func);
 
     $log_trace("Say Hi to the world!"); sev = log_facade::Severity::Trace; chan = $LogCurrentChannel; loc = $LogCurrentLocation;
-    EXPECT_EQ(g_last_metadata.severity, sev);
-    EXPECT_EQ(g_last_metadata.channel,  chan);
-    EXPECT_EQ(g_last_metadata.location.file, loc.file);
-    EXPECT_EQ(g_last_metadata.location.line, loc.line);
-    EXPECT_EQ(g_last_metadata.location.func, loc.func);
+    EXPECT_EQ   (g_last_metadata.severity, sev);
+    EXPECT_STREQ(g_last_metadata.channel,  chan);
+    EXPECT_STREQ(g_last_metadata.location.file, loc.file);
+    EXPECT_EQ   (g_last_metadata.location.line, loc.line);
+    EXPECT_STREQ(g_last_metadata.location.func, loc.func);
 }
