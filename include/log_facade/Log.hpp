@@ -35,9 +35,15 @@
 #define $log_warn_at($channel, $location, ...)  $log_perform_write(::log_facade::Severity::Warning, $channel, $location, ## __VA_ARGS__)
 #define $log_info_at($channel, $location, ...)  $log_perform_write(::log_facade::Severity::Info,    $channel, $location, ## __VA_ARGS__)
 /*
+    Evaluate if LOG_FACADE_DETAILED should be defined
+*/
+#if !(defined LOG_FACADE_DETAILED) && !(defined NDEBUG)
+#   define LOG_FACADE_DETAILED
+#endif
+/*
     Two lowest levels of logging are compiled-in only in debug mode or if explicitly enabled via macro
 */
-#if (defined _DEBUG) || (defined LOG_DETAILED)
+#ifdef LOG_FACADE_DETAILED
 #   define $log_debug_at($channel, $location, ...) $log_perform_write(::log_facade::Severity::Debug, $channel, $location, ## __VA_ARGS__)
 #   define $log_trace_at($channel, $location, ...) $log_perform_write(::log_facade::Severity::Trace, $channel, $location, ## __VA_ARGS__)
 #else
