@@ -87,3 +87,9 @@ Each of these macros accepts logging channel and location explicitly, and then j
 
 This macro does not deduce any parameters from context and accepts them explicitly.
 All other logging macros are in fact implemented through this one
+
+# LICENSE
+
+This project is licensed under [LICENSE](MIT license).
+Please note that Google Test package, which is used to build and run unit tests,
+is neither a part of core library, nor its required component. It's licensed separately.
