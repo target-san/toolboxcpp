@@ -1,6 +1,7 @@
 #pragma once
 #include <ostream>
 #include "../util/FuncRef.hpp"
+#include "../util/SourceLocation.hpp"
 /*
     Logging macros - use these to write messages to log
 */
@@ -68,7 +69,7 @@
 #define $LogCurrentChannel (__log_facade_get_channel__(::log_facade::impl::AdlTag {}))
 /** Substitutes with current loation object, which contains current file and line
 */
-#define $LogCurrentLocation (::log_facade::Location { __FILE__, __LINE__, __FUNCTION__ })
+#define $LogCurrentLocation $SourceLocation
 /** Defines default log formatting method, which simply dumps all specified expressions to provided stream
     Any override must be a macro which accepts variadic number of arguments and generates callable
     which accepts `std::ostream&` and returns nothing
@@ -98,13 +99,8 @@ enum class Severity
     _Count
 };
 /** @brief Defines log location
-*/
-struct Location
-{
-    const char* file;
-    int         line;
-    const char* func;
-};
+ */
+using Location      = ::util::SourceLocation; 
 
 using Channel       = const char*;
 using WriterFunc    = util::FuncRef<void(std::ostream&)>;
