@@ -43,16 +43,11 @@ public:
 private:
     L _logger;
 };
-/** Packs any logger-compatible type into LoggerBox
- *  and sets as current logger
- *  @tparam L       Logger type being wrapped
- *  @param  logger  Logger being wrapped
- */
+
 template<typename L>
-void set_logger(L&& logger)
+LoggerBox<typename std::decay<L>::type> make_logger_box(L&& logger)
 {
-    using Nested = typename std::decay<L>::type;
-    set_logger(new LoggerBox<Nested>(std::forward<L>(logger)));
+    return LoggerBox<typename std::decay<L>::type>(std::forward<L>(logger));
 }
 
 template<typename... Logs>
@@ -97,7 +92,7 @@ public:
 
     void write(Record const& rec, WriterFunc writer)
     {
-        util::foldTuple(_loggers, 0, Write{ rec, writer });
+        util::fold_tuple(_loggers, 0, Write{ rec, writer });
     }
 
 private:
@@ -105,15 +100,16 @@ private:
 };
 
 template<class... Args>
-MultiLogger<std::decay_t<Args>...> make_multi_logger(Args&&... args)
+MultiLogger<typename std::decay<Args>::type...> make_multi_logger(Args&&... args)
 {
-    return MultiLogger<std::decay_t<Args>...>(std::forward<Args>(args)...);
+    return MultiLogger<typename std::decay<Args>::type...>(std::forward<Args>(args)...);
 }
 
 template<class Logger>
 void set_loggers(Logger&& logger)
 {
-    set_logger(std::forward<Logger>(logger));
+    auto box = make_logger_box(std::forward<Logger>(logger));
+    set_logger(new decltype(box)(std::move(box)));
 }
 
 template<class Log0, class Log1, class... Logs>
@@ -148,7 +144,7 @@ private:
     Fn  _filter;
 };
 
-template<typename L, typename Fn,>
+template<typename L, typename Fn>
 FilteredLogger<typename std::decay<L>::type, typename std::decay<Fn>::type>
 make_filtered_logger(L&& logger, Fn&& filter)
 {
@@ -170,7 +166,7 @@ public:
     void write(Record const& rec, WriterFunc writer)
     {
         auto format_proxy = [&] (std::ostream& ost) { _formatter(ost, rec, writer); };
-        _logger.write(rec, writer);
+        _logger.write(rec, format_proxy);
     }
 
 private:

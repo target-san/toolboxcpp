@@ -1,3 +1,4 @@
+#pragma once
 #include <tuple>
 #include <utility>
 /** Templated fold function over tuples of arbitrary arity
