@@ -15,7 +15,7 @@ public:
     {
         // Small hack. Works nicely because set_logger detaches pointer from
         // unique_ptr and binds it to internal storage
-        log_facade::set_logger(std::unique_ptr<Logger>(this));
+        log_facade::set_logger(this);
     }
 
     bool is_enabled(log_facade::Metadata const& meta) override
@@ -42,12 +42,12 @@ TEST(TestLogger, BasicInit)
 {
     // Ensure nullptr is checked
     EXPECT_THROW(
-        log_facade::set_logger(std::unique_ptr<log_facade::Logger>()),
+        log_facade::set_logger(nullptr),
         std::invalid_argument
     );
     // Ensure no double-init
     EXPECT_THROW(
-        log_facade::set_logger(std::unique_ptr<log_facade::Logger>(new DummyLogger())),
+        log_facade::set_logger(new DummyLogger()),
         std::logic_error
     );
 }

@@ -31,20 +31,14 @@ void initRecord(Severity sev, Channel chan, Location loc, Record& rec)
 
 }
 
-void set_logger(std::unique_ptr<Logger> logger)
+void set_logger(Logger* logger)
 {
     if(!logger)
         throw std::invalid_argument("logger");
     Logger* expected = nullptr;
     // TODO: select proper ordering
-    if(g_logger.compare_exchange_weak(expected, logger.get()))
-    {
-        logger.release();
-    }
-    else
-    {
+    if(!g_logger.compare_exchange_weak(expected, logger))
         throw std::logic_error("Logger already initialized");
-    }
 }
 
 namespace impl

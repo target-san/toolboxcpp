@@ -50,7 +50,7 @@ template<typename L>
 void set_logger(L&& logger)
 {
     using Nested = typename std::decay<L>::type;
-    set_logger(std::make_unique<LoggerBox<Nested>>(std::forward<L>(logger)));
+    set_logger(new LoggerBox<Nested>(std::forward<L>(logger)));
 }
 
 template<typename... Logs>

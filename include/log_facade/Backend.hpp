@@ -30,10 +30,18 @@ public:
     virtual ~Logger() {}
 };
 /** @brief Set passed in object as current logger
+ *  
+ *  Logger is passed as bare pointer, which is never deleted.
+ *  As a result, logger can be supplied inside both as on-heap object
+ *  and as a pointer to static object.
+ *  In former case, on-heap object will exist for the whole lifetime of program.
+ *  In latter case, pointed-to object is never deleted.
+ *  Such approach should allow to cover more scenarios.
+ *  
  *  @param      logger                  On-heap logger object
- *  @exception  std::invalid_argument   If passed in unique_ptr is nullptr
+ *  @exception  std::invalid_argument   If logger is nullptr
  *  @exception  std::logic_error        If logger was already initialized
  */
-void set_logger(std::unique_ptr<Logger> logger);
+void set_logger(Logger* logger);
 
 } // namespace diag
