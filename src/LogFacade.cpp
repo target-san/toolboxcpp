@@ -1,11 +1,13 @@
 #include "../include/log_facade/Log.hpp"
-#include "../include/log_facade/Backend.hpp"
+#include "../include/log_facade/logger/Backend.hpp"
 
 #include <algorithm>
 #include <atomic>
 #include <stdexcept>
 
 namespace log_facade
+{
+namespace logger
 {
 /*
     Globally shared logger instance, with side-attached destructor
@@ -41,9 +43,6 @@ void set_logger(Logger* logger)
         throw std::logic_error("Logger already initialized");
 }
 
-namespace impl
-{
-
 bool is_enabled(Severity sev, Channel chan, Location loc)
 {
     // TODO: select proper ordering
@@ -68,5 +67,4 @@ void write(Severity sev, Channel chan, Location loc, WriterFunc writer)
 }
 
 }
-
 }

@@ -3,6 +3,8 @@
 /** Templated fold function over tuples of arbitrary arity
 */
 
+namespace log_facade
+{
 namespace util
 {
 
@@ -108,4 +110,5 @@ auto fold_tuple(std::tuple<Ts...>&& tuple, Acc&& accumulator, Fn&& folder)
     return impl::fold_impl(std::move(tuple), std::forward<Acc>(accumulator), std::forward<Fn>(folder), impl::MakeIndexSeqFor<Ts...>{});
 }
 
+}
 }

@@ -8,7 +8,7 @@
 
 namespace log_facade
 {
-namespace impl
+namespace logger
 {
 
 template<typename... Args>

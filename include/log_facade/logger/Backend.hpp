@@ -2,9 +2,11 @@
 
 #include <chrono>
 #include <memory>
-#include "Log.hpp"
+#include "../Log.hpp"
 
 namespace log_facade
+{
+namespace logger
 {
 
 struct Metadata
@@ -44,4 +46,5 @@ public:
  */
 void set_logger(Logger* logger);
 
-} // namespace diag
+} // namespace logger
+} // namespace log_facade

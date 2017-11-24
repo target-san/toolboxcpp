@@ -1,7 +1,7 @@
 #pragma once
 #include <ostream>
-#include "../util/FuncRef.hpp"
-#include "../util/SourceLocation.hpp"
+#include "util/FuncRef.hpp"
+#include "util/SourceLocation.hpp"
 /*
     Logging macros - use these to write messages to log
 */
@@ -23,7 +23,7 @@
     
     @param  $identifier String literal which denotes current logging channel
 */
-#define $LogChannel($identifier) static constexpr ::log_facade::Channel __log_facade_get_channel__(::log_facade::impl::AdlTag) { return ($identifier); }
+#define $LogChannel($identifier) static constexpr ::log_facade::Channel __log_facade_get_channel__(::log_facade::channel::AdlTag) { return ($identifier); }
 /**
     Logging macros which are specialized by severity but allow to specify custom target and location
     May be used in cases where logging macro is invoked through some intermediate code,
@@ -59,14 +59,14 @@
     @param[in] ...          Epsilon argument, set of values which should be written to log
 */
 #define $log_perform_write($severity, $channel, $location, ...) (                               \
-    ::log_facade::impl::is_enabled($severity, $channel, $location)                              \
-        ? ::log_facade::impl::write($severity, $channel, $location, $log_format(__VA_ARGS__))   \
+    ::log_facade::logger::is_enabled($severity, $channel, $location)                              \
+        ? ::log_facade::logger::write($severity, $channel, $location, $log_format(__VA_ARGS__))   \
         : (void())                                                                              \
     )
 
 /** Substitutes with current 'channel' defined in current scope
 */
-#define $LogCurrentChannel (__log_facade_get_channel__(::log_facade::impl::AdlTag {}))
+#define $LogCurrentChannel (__log_facade_get_channel__(::log_facade::channel::AdlTag {}))
 /** Substitutes with current loation object, which contains current file and line
 */
 #define $LogCurrentLocation $SourceLocation
@@ -76,10 +76,10 @@
 */
 #ifndef $log_format
 //  Contains implementation of defaultFormat which is a bit complicated to be shown here
-#   include "DefaultFmt.hpp"
+#   include "logger/DefaultFmt.hpp"
 /** @brief Default log formatting method
 */
-#   define $log_format(...) (::log_facade::impl::default_format(__VA_ARGS__))
+#   define $log_format(...) (::log_facade::logger::default_format(__VA_ARGS__))
 #endif
 
 namespace log_facade
@@ -100,12 +100,12 @@ enum class Severity
 };
 /** @brief Defines log location
  */
-using Location      = ::util::SourceLocation; 
+using Location      = util::SourceLocation; 
 
 using Channel       = const char*;
 using WriterFunc    = util::FuncRef<void(std::ostream&)>;
 
-namespace impl
+namespace logger
 {
 /**
     Checks if logging is enabled for provided severity level, channel identifier and location
@@ -117,16 +117,21 @@ namespace impl
 */
 bool is_enabled(Severity severity, Channel channel, Location location);
 /** @brief Deliver message to logging subsystem
-  
+
     Writes specified message with specified metadata to log
     Not guaranteed to check if log is enabled for specified severity and target
-    
+
     @param  severity    Logging level
     @param  channle     A string which identifies log invocation context; meaning is implementation-defined
     @param  location    File name and line number where logging happens
     @param  writer      Function which receives stream and writes logging message into it
 */
 void write(Severity severity, Channel channel, Location location, WriterFunc writer);
+
+}
+
+namespace channel
+{
 /// Enables ADL-based deduction on which "log channel" function to use
 struct AdlTag {};
 // Returns default log channel, empty string in our case

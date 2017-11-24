@@ -1,30 +1,34 @@
 #include <gtest/gtest.h>
 #define LOG_DETAILED
 #include <log_facade/Log.hpp>
-#include <log_facade/Backend.hpp>
+#include <log_facade/logger/Backend.hpp>
 
 #include <stdexcept>
-// These are used to get what's received by logger methods
-static log_facade::Metadata g_last_metadata;
-static log_facade::Record   g_last_record;
 
-struct TestLogger: public log_facade::Logger
+using log_facade::logger::Logger;
+using log_facade::logger::Metadata;
+using log_facade::logger::Record;
+// These are used to get what's received by logger methods
+static Metadata g_last_metadata;
+static Record   g_last_record;
+
+struct TestLogger: public Logger
 {
 public:
     TestLogger()
     {
         // Small hack. Works nicely because set_logger detaches pointer from
         // unique_ptr and binds it to internal storage
-        log_facade::set_logger(this);
+        log_facade::logger::set_logger(this);
     }
 
-    bool is_enabled(log_facade::Metadata const& meta) override
+    bool is_enabled(Metadata const& meta) override
     {
         g_last_metadata = meta;
         return true;
     }
 
-    void write(log_facade::Record const& rec, log_facade::WriterFunc writer) override
+    void write(Record const& rec, log_facade::WriterFunc writer) override
     {
         g_last_record = rec;
     }
@@ -32,22 +36,22 @@ public:
 
 TestLogger g_logger;
 
-struct DummyLogger: log_facade::Logger
+struct DummyLogger: Logger
 {
-    bool is_enabled(log_facade::Metadata const&) override { return false; }
-    void write(log_facade::Record const&, log_facade::WriterFunc) override {}
+    bool is_enabled(Metadata const&) override { return false; }
+    void write(Record const&, log_facade::WriterFunc) override {}
 };
 
 TEST(TestLogger, BasicInit)
 {
     // Ensure nullptr is checked
     EXPECT_THROW(
-        log_facade::set_logger(nullptr),
+        log_facade::logger::set_logger(nullptr),
         std::invalid_argument
     );
     // Ensure no double-init
     EXPECT_THROW(
-        log_facade::set_logger(new DummyLogger()),
+        log_facade::logger::set_logger(new DummyLogger()),
         std::logic_error
     );
 }

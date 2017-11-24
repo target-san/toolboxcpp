@@ -6,11 +6,13 @@
 #include <tuple>
 #include <utility>
 
-#include "Log.hpp"
+#include "../Log.hpp"
 #include "Backend.hpp"
 #include "../util/FoldTuple.hpp"
 
 namespace log_facade
+{
+namespace logger
 {
 /** Wraps any type which conforms to Logger concept
  *  into type which implements Logger interface
@@ -184,4 +186,5 @@ make_formatted_logger(L&& logger, Fn&& formatter)
         (std::forward<L>(logger), std::forward<Fn>(formatter));
 }
 
-} // namespace diag
+} // namespace logger
+} // namespace log_facade

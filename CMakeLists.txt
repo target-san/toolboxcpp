@@ -9,26 +9,32 @@ project(log_facade)
 
 set(SOURCES
     include/log_facade/Log.hpp
-    include/log_facade/DefaultFmt.hpp
-    include/log_facade/Backend.hpp
-    include/log_facade/Combinators.hpp
     
-    include/util/FuncRef.hpp
-    include/util/FoldTuple.hpp
+    include/log_facade/logger/DefaultFmt.hpp
+    include/log_facade/logger/Backend.hpp
+    include/log_facade/logger/Combinators.hpp
+    
+    include/log_facade/util/FuncRef.hpp
+    include/log_facade/util/FoldTuple.hpp
+    include/log_facade/util/SourceLocation.hpp
     
     src/LogFacade.cpp
 )
 
 source_group(include\\log_facade FILES
     include/log_facade/Log.hpp
-    include/log_facade/DefaultFmt.hpp
-    include/log_facade/Backend.hpp
-    include/log_facade/Combinators.hpp
 )
 
-source_group(include\\util FILES
-    include/util/FuncRef.hpp
-    include/util/FoldTuple.hpp
+source_group(include\\log_facade\\logger FILES    
+    include/log_facade/logger/DefaultFmt.hpp
+    include/log_facade/logger/Backend.hpp
+    include/log_facade/logger/Combinators.hpp
+)
+
+source_group(include\\log_facade\\util FILES
+    include/log_facade/util/FuncRef.hpp
+    include/log_facade/util/FoldTuple.hpp
+    include/log_facade/util/SourceLocation.hpp
 )
 
 source_group(src FILES src/LogFacade.cpp)
