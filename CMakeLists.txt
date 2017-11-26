@@ -10,8 +10,8 @@ project(log_facade)
 set(SOURCES
     include/log_facade/Log.hpp
     
+    include/log_facade/logger/Logger.hpp
     include/log_facade/logger/DefaultFmt.hpp
-    include/log_facade/logger/Backend.hpp
     include/log_facade/logger/Combinators.hpp
     
     include/log_facade/util/FuncRef.hpp
@@ -26,8 +26,8 @@ source_group(include\\log_facade FILES
 )
 
 source_group(include\\log_facade\\logger FILES    
+    include/log_facade/logger/Logger.hpp
     include/log_facade/logger/DefaultFmt.hpp
-    include/log_facade/logger/Backend.hpp
     include/log_facade/logger/Combinators.hpp
 )
 

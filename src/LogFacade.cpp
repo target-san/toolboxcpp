@@ -1,5 +1,5 @@
 #include "../include/log_facade/Log.hpp"
-#include "../include/log_facade/logger/Backend.hpp"
+#include "../include/log_facade/logger/Logger.hpp"
 
 #include <algorithm>
 #include <atomic>
@@ -33,7 +33,7 @@ void initRecord(Severity sev, Channel chan, Location loc, Record& rec)
 
 }
 
-void set_logger(Logger* logger)
+void set_logger_pointer(Logger* logger)
 {
     if(!logger)
         throw std::invalid_argument("logger");

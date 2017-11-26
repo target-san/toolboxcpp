@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #define LOG_DETAILED
 #include <log_facade/Log.hpp>
-#include <log_facade/logger/Backend.hpp>
+#include <log_facade/logger/Logger.hpp>
 
 #include <stdexcept>
 
@@ -17,9 +17,7 @@ struct TestLogger: public Logger
 public:
     TestLogger()
     {
-        // Small hack. Works nicely because set_logger detaches pointer from
-        // unique_ptr and binds it to internal storage
-        log_facade::logger::set_logger(this);
+        log_facade::logger::set_logger_pointer(this);
     }
 
     bool is_enabled(Metadata const& meta) override
@@ -36,22 +34,22 @@ public:
 
 TestLogger g_logger;
 
-struct DummyLogger: Logger
+struct DummyLogger
 {
-    bool is_enabled(Metadata const&) override { return false; }
-    void write(Record const&, log_facade::WriterFunc) override {}
+    bool is_enabled(Metadata const&) { return false; }
+    void write(Record const&, log_facade::WriterFunc) {}
 };
 
 TEST(TestLogger, BasicInit)
 {
     // Ensure nullptr is checked
     EXPECT_THROW(
-        log_facade::logger::set_logger(nullptr),
+        log_facade::logger::set_logger_pointer(nullptr),
         std::invalid_argument
     );
     // Ensure no double-init
     EXPECT_THROW(
-        log_facade::logger::set_logger(new DummyLogger()),
+        log_facade::logger::set_logger(DummyLogger()),
         std::logic_error
     );
 }
