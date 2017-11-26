@@ -23,7 +23,7 @@
     
     @param  $identifier String literal which denotes current logging channel
 */
-#define $LogChannel($identifier) static constexpr ::log_facade::Channel __log_facade_get_channel__(::log_facade::channel::AdlTag) { return ($identifier); }
+#define $LogChannel($identifier) static constexpr ::log_facade::Channel __log_facade_get_channel__(::log_facade::channel::AdlTag, int) { return ($identifier); }
 /**
     Logging macros which are specialized by severity but allow to specify custom target and location
     May be used in cases where logging macro is invoked through some intermediate code,
@@ -66,7 +66,7 @@
 
 /** Substitutes with current 'channel' defined in current scope
 */
-#define $LogCurrentChannel (__log_facade_get_channel__(::log_facade::channel::AdlTag {}))
+#define $LogCurrentChannel (__log_facade_get_channel__(::log_facade::channel::AdlTag {}, 0))
 /** Substitutes with current loation object, which contains current file and line
 */
 #define $LogCurrentLocation $SourceLocation
@@ -84,62 +84,59 @@
 
 namespace log_facade
 {
-// Importance level of log message
-enum class Severity
-{
-    // In fact specifies no need for logging
-    None,
-    // Normal logging levels
-    Error,
-    Warning,
-    Info,
-    Debug,
-    Trace,
-    // Upper limit for the value of logging level
-    _Count
-};
-/** @brief Defines log location
- */
-using Location      = util::SourceLocation; 
+    // Importance level of log message
+    enum class Severity
+    {
+        // In fact specifies no need for logging
+        None,
+        // Normal logging levels
+        Error,
+        Warning,
+        Info,
+        Debug,
+        Trace,
+        // Upper limit for the value of logging level
+        _Count
+    };
+    /** @brief Defines log location
+     */
+    using Location      = util::SourceLocation; 
 
-using Channel       = const char*;
-using WriterFunc    = util::FuncRef<void(std::ostream&)>;
+    using Channel       = const char*;
+    using WriterFunc    = util::FuncRef<void(std::ostream&)>;
 
 namespace logger
 {
-/**
-    Checks if logging is enabled for provided severity level, channel identifier and location
+    /**
+        Checks if logging is enabled for provided severity level, channel identifier and location
 
-    @param  severity    Logging level
-    @param  channel     A string which identifies log invocation context; meaning is implementation-defined
-    @param  location    Logging message location in sources
-    @return             true if message should be writter, false otherwise
-*/
-bool is_enabled(Severity severity, Channel channel, Location location);
-/** @brief Deliver message to logging subsystem
+        @param  severity    Logging level
+        @param  channel     A string which identifies log invocation context; meaning is implementation-defined
+        @param  location    Logging message location in sources
+        @return             true if message should be writter, false otherwise
+    */
+    bool is_enabled(Severity severity, Channel channel, Location location);
+    /** @brief Deliver message to logging subsystem
 
-    Writes specified message with specified metadata to log
-    Not guaranteed to check if log is enabled for specified severity and target
+        Writes specified message with specified metadata to log
+        Not guaranteed to check if log is enabled for specified severity and target
 
-    @param  severity    Logging level
-    @param  channle     A string which identifies log invocation context; meaning is implementation-defined
-    @param  location    File name and line number where logging happens
-    @param  writer      Function which receives stream and writes logging message into it
-*/
-void write(Severity severity, Channel channel, Location location, WriterFunc writer);
-
+        @param  severity    Logging level
+        @param  channle     A string which identifies log invocation context; meaning is implementation-defined
+        @param  location    File name and line number where logging happens
+        @param  writer      Function which receives stream and writes logging message into it
+    */
+    void write(Severity severity, Channel channel, Location location, WriterFunc writer);
 }
 
 namespace channel
 {
-/// Enables ADL-based deduction on which "log channel" function to use
-struct AdlTag {};
-// Returns default log channel, empty string in our case
-static inline Channel __log_facade_get_channel__(...)
-{
-    return "";
-}
-
-} // namespace impl
-
+    /// Enables ADL-based deduction on which "log channel" function to use
+    struct AdlTag {};
+    /// Returns default log channel, empty string in our case
+    static inline Channel __log_facade_get_channel__(AdlTag, ...)
+    {
+        return "";
+    }
+} // namespace channel
 } // namespace log_facade
