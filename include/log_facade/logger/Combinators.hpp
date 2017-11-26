@@ -7,180 +7,145 @@
 #include <utility>
 
 #include "../Log.hpp"
-#include "Backend.hpp"
+#include "Logger.hpp"
 #include "../util/FoldTuple.hpp"
 
 namespace log_facade
 {
 namespace logger
 {
-/** Wraps any type which conforms to Logger concept
- *  into type which implements Logger interface
- *  In most cases, dynamic invocation is used only once,
- *  when public functions delegate to concrete logger implementation,
- *  and not needed inside composite logger itself - as all types are usually
- *  known there
- *  @tparam L Type of actual logger stored inside        
- */
-template<typename L>
-class LoggerBox: public Logger
-{
-public:
-    template<typename T>
-    LoggerBox(T&& logger)
-        : _logger(std::forward<T>(logger))
-    { }    
-
-    virtual bool is_enabled(Metadata const& meta) override
+    /** Composes several loggers and sends message to each of them
+     */
+    template<typename... Logs>
+    class MultiLogger
     {
-        return _logger.is_enabled(meta);
-    }
-    virtual void write(Record const& rec, WriterFunc writer) override
-    {
-        _logger.write(rec, writer);
-    }
-
-private:
-    L _logger;
-};
-
-template<typename L>
-LoggerBox<typename std::decay<L>::type> make_logger_box(L&& logger)
-{
-    return LoggerBox<typename std::decay<L>::type>(std::forward<L>(logger));
-}
-
-template<typename... Logs>
-class MultiLogger
-{
-private:
-    struct IsEnabled
-    {
-        Metadata const& meta;
-
-        template<typename T>
-        bool operator()(bool enabled, T&& logger)
+    private:
+        struct IsEnabled
         {
-            return enabled || logger.is_enabled(meta);
-        }
-    };
+            Metadata const& meta;
 
-    struct Write
-    {
-        Record const& record;
-        WriterFunc writer;
+            template<typename T>
+            bool operator()(bool enabled, T&& logger)
+            {
+                return enabled || logger.is_enabled(meta);
+            }
+        };
 
-        template<typename T>
-        int operator()(int, T&& logger)
+        struct Write
         {
-            if(logger.is_enabled(record))
-                logger.write(record, writer);
-            return 0;
+            Record const& record;
+            WriterFunc writer;
+
+            template<typename T>
+            int operator()(int, T&& logger)
+            {
+                if(logger.is_enabled(record))
+                    logger.write(record, writer);
+                return 0;
+            }
+        };
+    public:
+
+        template<typename... Args>
+        MultiLogger(Args&&... args)
+            : _loggers(std::forward<Args>(args)...)
+        { }
+
+        bool is_enabled(Metadata const& meta)
+        {
+            return util::fold_tuple(_loggers, false, IsEnabled { meta });
         }
+
+        void write(Record const& rec, WriterFunc writer)
+        {
+            util::fold_tuple(_loggers, 0, Write{ rec, writer });
+        }
+
+    private:
+        std::tuple<Logs...> _loggers;
     };
-public:
-
-    template<typename... Args>
-    MultiLogger(Args&&... args)
-        : _loggers(std::forward<Args>(args)...)
-    { }
-
-    bool is_enabled(Metadata const& meta)
+    /** Construct multi-logger out of multiple nested loggers
+     */
+    template<class... Args>
+    MultiLogger<typename std::decay<Args>::type...> make_multi_logger(Args&&... args)
     {
-        return util::fold_tuple(_loggers, false, IsEnabled { meta });
+        return MultiLogger<typename std::decay<Args>::type...>(std::forward<Args>(args)...);
     }
-
-    void write(Record const& rec, WriterFunc writer)
+    /** Logger which makes enabled/disabled decision based on call to unary functor
+     *
+     *  Filter functor should have signature compatible with
+     *  @code
+     *  bool (Metadata const&)
+     *  @endcode
+     */
+    template<typename Fn, typename L>
+    class FilteredLogger
     {
-        util::fold_tuple(_loggers, 0, Write{ rec, writer });
-    }
+    public:
+        FilteredLogger(Fn filter, L logger)
+            : _filter(std::move(filter))
+            , _logger(std::move(logger))
+        { }
 
-private:
-    std::tuple<Logs...> _loggers;
-};
+        bool is_enabled(Metadata const& meta)
+        {
+            return _filter(meta) && _logger.is_enabled(meta);
+        }
 
-template<class... Args>
-MultiLogger<typename std::decay<Args>::type...> make_multi_logger(Args&&... args)
-{
-    return MultiLogger<typename std::decay<Args>::type...>(std::forward<Args>(args)...);
-}
+        void write(Record const& record, WriterFunc writer)
+        {
+            _logger.write(record, writer);
+        }
 
-template<class Logger>
-void set_loggers(Logger&& logger)
-{
-    auto box = make_logger_box(std::forward<Logger>(logger));
-    set_logger(new decltype(box)(std::move(box)));
-}
-
-template<class Log0, class Log1, class... Logs>
-void set_loggers(Log0&& log0, Log1&& log1, Logs&&... logs)
-{
-    set_loggers(
-        make_multi_logger(std::forward<Log0>(log0), std::forward<Log1>(log1), std::forward<Logs>(logs)...)
-    );
-};
-
-template<typename L, typename Fn>
-class FilteredLogger
-{
-public:
-    FilteredLogger(L logger, Fn filter)
-        : _logger(std::move(logger))
-        , _filter(std::move(filter))
-    { }
-
-    bool is_enabled(Metadata const& meta)
+    private:
+        Fn  _filter;
+        L   _logger;
+    };
+    /** Construct filtered logger from fliter functor and nested logger
+     */
+    template<typename Fn, typename L>
+    FilteredLogger<typename std::decay<Fn>::type, typename std::decay<L>::type>
+    make_filtered_logger(Fn&& filter, L&& logger)
     {
-        return _filter(meta) && _logger.is_enabled(meta);
+        return FilteredLogger<typename std::decay<Fn>::type, typename std::decay<L>::type>
+            (std::forward<Fn>(filter), std::forward<L>(logger));
     }
-
-    void write(Record const& record, WriterFunc writer)
+    /** Applies additional formatting to message using provided formatting functor
+     *
+     *  Format functor should have signature compatible with:
+     *  @code
+     *  void (std::ostream&, Record const&, WriterFunc)
+     *  @endcode
+     */
+    template<typename Fn, typename L>
+    class FormattedLogger
     {
-        _logger.write(record, writer);
-    }
+    public:
+        FormattedLogger(Fn formatter, L logger)
+            : _formatter(std::move(formatter))
+            , _logger(std::move(logger))
+        { }
 
-private:
-    L   _logger;
-    Fn  _filter;
-};
+        bool is_enabled(Metadata const& meta) { return _logger.is_enabled(meta); }
 
-template<typename L, typename Fn>
-FilteredLogger<typename std::decay<L>::type, typename std::decay<Fn>::type>
-make_filtered_logger(L&& logger, Fn&& filter)
-{
-    return FilteredLogger<typename std::decay<L>::type, typename std::decay<Fn>::type>
-        (std::forward<L>(logger), std::forward<Fn>(filter));
-}
+        void write(Record const& rec, WriterFunc writer)
+        {
+            auto format_proxy = [&] (std::ostream& ost) { _formatter(ost, rec, writer); };
+            _logger.write(rec, format_proxy);
+        }
 
-template<typename L, typename Fn>
-class FormattedLogger
-{
-public:
-    FormattedLogger(L logger, Fn formatter)
-        : _logger(std::move(logger))
-        , _formatter(std::move(formatter))
-    { }
-
-    bool is_enabled(Metadata const& meta) { return _logger.is_enabled(meta); }
-
-    void write(Record const& rec, WriterFunc writer)
+    private:
+        Fn  _formatter;
+        L   _logger;
+    };
+    /** Construct formatted logger out of filter functor and nested logger
+     */
+    template<typename Fn, typename L>
+    FormattedLogger<typename std::decay<Fn>::type, typename std::decay<L>::type>
+    make_formatted_logger(Fn&& formatter, L&& logger)
     {
-        auto format_proxy = [&] (std::ostream& ost) { _formatter(ost, rec, writer); };
-        _logger.write(rec, format_proxy);
+        return FormattedLogger<typename std::decay<Fn>::type, typename std::decay<L>::type>
+            (std::forward<Fn>(formatter), std::forward<L>(logger));
     }
-
-private:
-    L   _logger;
-    Fn  _formatter;
-};
-
-template<typename L, typename Fn>
-FormattedLogger<typename std::decay<L>::type, typename std::decay<Fn>::type>
-make_formatted_logger(L&& logger, Fn&& formatter)
-{
-    return FormattedLogger<typename std::decay<L>::type, typename std::decay<Fn>::type>
-        (std::forward<L>(logger), std::forward<Fn>(formatter));
-}
-
 } // namespace logger
 } // namespace log_facade
