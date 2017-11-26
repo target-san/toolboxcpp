@@ -5,6 +5,7 @@
 #include <string>
 #include <tuple>
 #include <utility>
+#include <sstream>
 
 #include "../Log.hpp"
 #include "Logger.hpp"
@@ -146,6 +147,41 @@ namespace logger
     {
         return FormattedLogger<typename std::decay<Fn>::type, typename std::decay<L>::type>
             (std::forward<Fn>(formatter), std::forward<L>(logger));
+    }
+    /** Writes whole message into intermediate buffer and then sends that buffer to wrapped logger as messafe
+     *
+     *  This can be useful when you know that certain message will be written to multiple underlying streams.
+     *  In this case, performing formatting once may save you some time.
+     */
+    template<typename L>
+    struct CachedLogger
+    {
+    public:
+        CachedLogger(L logger)
+            : _logger(std::forward<L>(logger))
+        { }
+
+        bool is_enabled(Metadata const& meta)
+        {
+            return _logger.is_enabled(meta);
+        }
+
+        void write(Record const& rec, WriterFunc writer)
+        {
+            std::ostringstream msg;
+            writer(msg);
+            auto writer_proxy = [&](std::ostream& ost) { ost << msg.rdbuf(); };
+            _logger.write(rec, writer_proxy);
+        }
+    private:
+        L _logger;
+    };
+    /** Constructs cached logger by wrapping another logger
+     */
+    template<typename L>
+    CachedLogger<typename std::decay<L>::type> make_cached_logger(L&& logger)
+    {
+        return CachedLogger<typename std::decay<L>::type>(std::forward<L>(logger));
     }
 } // namespace logger
 } // namespace log_facade
