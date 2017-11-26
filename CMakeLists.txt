@@ -11,8 +11,9 @@ set(SOURCES
     include/log_facade/Log.hpp
     
     include/log_facade/logger/Logger.hpp
-    include/log_facade/logger/DefaultFmt.hpp
     include/log_facade/logger/Combinators.hpp
+    include/log_facade/logger/Sinks.hpp
+    include/log_facade/logger/DefaultFmt.hpp
     
     include/log_facade/util/FuncRef.hpp
     include/log_facade/util/FoldTuple.hpp
@@ -27,8 +28,9 @@ source_group(include\\log_facade FILES
 
 source_group(include\\log_facade\\logger FILES    
     include/log_facade/logger/Logger.hpp
-    include/log_facade/logger/DefaultFmt.hpp
     include/log_facade/logger/Combinators.hpp
+    include/log_facade/logger/Sinks.hpp
+    include/log_facade/logger/DefaultFmt.hpp
 )
 
 source_group(include\\log_facade\\util FILES
