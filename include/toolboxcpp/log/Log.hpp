@@ -25,7 +25,7 @@
     
     @param  $identifier String literal which denotes current logging channel
 */
-#define $LogChannel($identifier) static constexpr ::toolboxcpp::log::Channel __log_facade_get_channel__(::toolboxcpp::log::impl::AdlTag, int) { return ($identifier); }
+#define $LogChannel($identifier) static constexpr ::toolboxcpp::log::Channel __toolbox_log_get_channel__(::toolboxcpp::log::impl::AdlTag, int) { return ($identifier); }
 /**
     Logging macros which are specialized by severity but allow to specify custom target and location
     May be used in cases where logging macro is invoked through some intermediate code,
@@ -34,41 +34,55 @@
     @param[in] $target      Target name
     @param[in] $location    File and line where logging happens
 */
-#define $log_error_at($channel, $location, ...) $log_perform_write(::toolboxcpp::log::Severity::Error,   $channel, $location, ## __VA_ARGS__)
-#define $log_warn_at($channel, $location, ...)  $log_perform_write(::toolboxcpp::log::Severity::Warning, $channel, $location, ## __VA_ARGS__)
-#define $log_info_at($channel, $location, ...)  $log_perform_write(::toolboxcpp::log::Severity::Info,    $channel, $location, ## __VA_ARGS__)
+#define $log_error_at($channel, $location, ...) $log_perform_write_fmt(::toolboxcpp::log::Severity::Error,   $channel, $location, ## __VA_ARGS__)
+#define $log_warn_at($channel, $location, ...)  $log_perform_write_fmt(::toolboxcpp::log::Severity::Warning, $channel, $location, ## __VA_ARGS__)
+#define $log_info_at($channel, $location, ...)  $log_perform_write_fmt(::toolboxcpp::log::Severity::Info,    $channel, $location, ## __VA_ARGS__)
 /*
     Evaluate if LOG_FACADE_DETAILED should be defined
 */
-#if !(defined LOG_FACADE_DETAILED) && !(defined NDEBUG)
-#   define LOG_FACADE_DETAILED
+#if !(defined TOOLBOX_LOG_DETAILED) && !(defined NDEBUG)
+#   define TOOLBOX_LOG_DETAILED
 #endif
 /*
     Two lowest levels of logging are compiled-in only in debug mode or if explicitly enabled via macro
 */
-#ifdef LOG_FACADE_DETAILED
-#   define $log_debug_at($channel, $location, ...) $log_perform_write(::toolboxcpp::log::Severity::Debug, $channel, $location, ## __VA_ARGS__)
-#   define $log_trace_at($channel, $location, ...) $log_perform_write(::toolboxcpp::log::Severity::Trace, $channel, $location, ## __VA_ARGS__)
+#ifdef TOOLBOX_LOG_DETAILED
+#   define $log_debug_at($channel, $location, ...) $log_perform_write_fmt(::toolboxcpp::log::Severity::Debug, $channel, $location, ## __VA_ARGS__)
+#   define $log_trace_at($channel, $location, ...) $log_perform_write_fmt(::toolboxcpp::log::Severity::Trace, $channel, $location, ## __VA_ARGS__)
 #else
 #   define $log_debug_at($channel, $location, ...) (void())
 #   define $log_trace_at($channel, $location, ...) (void())
 #endif
-/** The most explicit log writing macro. Does not infer any info from its current context
+/**
+    Explicit log writing macro. Does not infer any info from its current context,
+    only packs epsilon arguments into formatting macro.
     
     @param[in] $severity    log severity level
     @param[in] $channel     log channel, defined by application
     @param[in] $location    file and line which should be used in log message as location
     @param[in] ...          Epsilon argument, set of values which should be written to log
 */
-#define $log_perform_write($severity, $channel, $location, ...) (                               \
-    ::toolboxcpp::log::impl::is_enabled($severity, $channel, $location)                              \
-        ? ::toolboxcpp::log::impl::write($severity, $channel, $location, $log_format(__VA_ARGS__))   \
-        : (void())                                                                              \
-    )
+#define $log_perform_write_fmt($severity, $channel, $location, ...)                 \
+    $log_perform_write($severity, $channel, $location, $log_format(__VA_ARGS__))    \
+/**/
+/**
+    The most explicit log writing macro. Does not infer any info from its current context.
+    
+    @param[in] $severity    log severity level
+    @param[in] $channel     log channel, defined by application
+    @param[in] $location    file and line which should be used in log message as location
+    @param[in] $fmtfunc     Formatter function, writes message into provided stream
+*/
+#define $log_perform_write($severity, $channel, $location, $fmtfunc) (              \
+    ::toolboxcpp::log::impl::is_enabled($severity, $channel, $location)             \
+        ? ::toolboxcpp::log::impl::write($severity, $channel, $location, $fmtfunc)  \
+        : (void())                                                                  \
+    )                                                                               \
+/**/
 
 /** Substitutes with current 'channel' defined in current scope
 */
-#define $LogCurrentChannel (__log_facade_get_channel__(::toolboxcpp::log::impl::AdlTag {}, 0))
+#define $LogCurrentChannel (__toolbox_log_get_channel__(::toolboxcpp::log::impl::AdlTag {}, 0))
 /** Substitutes with current loation object, which contains current file and line
 */
 #define $LogCurrentLocation $SourceLocation
@@ -120,7 +134,8 @@ namespace impl
         @return             true if message should be writter, false otherwise
     */
     bool is_enabled(Severity severity, Channel channel, Location location);
-    /** @brief Deliver message to logging subsystem
+    /** 
+        @brief Deliver message to logging subsystem
 
         Writes specified message with specified metadata to log
         Not guaranteed to check if log is enabled for specified severity and target
@@ -134,11 +149,20 @@ namespace impl
     /// Enables ADL-based deduction on which "log channel" function to use
     struct AdlTag {};
     /// Returns default log channel, empty string in our case
-    static inline Channel __log_facade_get_channel__(AdlTag, ...)
+    static inline Channel __toolbox_log_get_channel__(AdlTag, ...)
     {
         return "";
     }
 } // namespace impl
 
 } // namespace log
+
+namespace util
+{
+    inline std::ostream& operator << (std::ostream& ost, FuncRef<void(std::ostream&)> writer)
+    {
+        writer(ost);
+        return ost;
+    }
+} // namespace util
 } // namespace toolboxcpp

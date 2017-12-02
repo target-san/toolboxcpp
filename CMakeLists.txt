@@ -22,11 +22,11 @@ set(SOURCES
 )
 
 source_group(include\\toolboxcpp\\log FILES    
-    include/log_facade/log/Log.hpp
-    include/log_facade/log/Logger.hpp
-    include/log_facade/log/Combinators.hpp
-    include/log_facade/log/Sinks.hpp
-    include/log_facade/log/DefaultFmt.hpp
+    include/toolboxcpp/log/Log.hpp
+    include/toolboxcpp/log/Logger.hpp
+    include/toolboxcpp/log/Combinators.hpp
+    include/toolboxcpp/log/Sinks.hpp
+    include/toolboxcpp/log/DefaultFmt.hpp
 )
 
 source_group(include\\toolboxcpp\\util FILES

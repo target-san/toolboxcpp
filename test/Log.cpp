@@ -38,7 +38,7 @@ struct DummyLogger
     void write(Record const&, WriterFunc) {}
 };
 
-TEST(TestLogger, BasicInit)
+TEST(Log, BasicInit)
 {
     // Ensure nullptr is checked
     EXPECT_THROW(set_logger_pointer(nullptr), std::invalid_argument);
@@ -46,7 +46,7 @@ TEST(TestLogger, BasicInit)
     EXPECT_THROW(set_logger(DummyLogger()), std::logic_error);
 }
 
-TEST(LogFacade, BasicMacro)
+TEST(Log, Severities)
 {
     Severity sev {};
     Channel chan {};
