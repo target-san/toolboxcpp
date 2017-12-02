@@ -1,6 +1,10 @@
+#pragma once
+
+#include <toolboxcpp/util/FoldTuple.hpp>
+
 #include <tuple>
 #include <utility>
-#include "../util/FoldTuple.hpp"
+
 /**
     Implementation of default formatter which captures all passed in variables into object
     and dumps them into provided stream on-demand

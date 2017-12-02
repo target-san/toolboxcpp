@@ -3,55 +3,58 @@ cmake_minimum_required(VERSION 3.1)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD          11)
 
-option(LOG_FACADE_TESTS "Add compilation of log_facade's own unittests" OFF)
+option(TOOLBOXCPP_TESTS "Add compilation of toolboxcpp's own unittests" OFF)
 
-project(log_facade)
+project(toolboxcpp)
 
 set(SOURCES
-    include/log_facade/Log.hpp
+    include/toolboxcpp/log/Log.hpp
+    include/toolboxcpp/log/Logger.hpp
+    include/toolboxcpp/log/Combinators.hpp
+    include/toolboxcpp/log/Sinks.hpp
+    include/toolboxcpp/log/DefaultFmt.hpp
     
-    include/log_facade/logger/Logger.hpp
-    include/log_facade/logger/Combinators.hpp
-    include/log_facade/logger/Sinks.hpp
-    include/log_facade/logger/DefaultFmt.hpp
-    
-    include/log_facade/util/FuncRef.hpp
-    include/log_facade/util/FoldTuple.hpp
-    include/log_facade/util/SourceLocation.hpp
-    
-    src/LogFacade.cpp
+    src/log/Logger.cpp
+
+    include/toolboxcpp/util/FuncRef.hpp
+    include/toolboxcpp/util/FoldTuple.hpp
+    include/toolboxcpp/util/SourceLocation.hpp
 )
 
-source_group(include\\log_facade FILES
-    include/log_facade/Log.hpp
+source_group(include\\toolboxcpp\\log FILES    
+    include/log_facade/log/Log.hpp
+    include/log_facade/log/Logger.hpp
+    include/log_facade/log/Combinators.hpp
+    include/log_facade/log/Sinks.hpp
+    include/log_facade/log/DefaultFmt.hpp
 )
 
-source_group(include\\log_facade\\logger FILES    
-    include/log_facade/logger/Logger.hpp
-    include/log_facade/logger/Combinators.hpp
-    include/log_facade/logger/Sinks.hpp
-    include/log_facade/logger/DefaultFmt.hpp
+source_group(include\\toolboxcpp\\util FILES
+    include/toolboxcpp/util/FuncRef.hpp
+    include/toolboxcpp/util/FoldTuple.hpp
+    include/toolboxcpp/util/SourceLocation.hpp
 )
 
-source_group(include\\log_facade\\util FILES
-    include/log_facade/util/FuncRef.hpp
-    include/log_facade/util/FoldTuple.hpp
-    include/log_facade/util/SourceLocation.hpp
+source_group(src\\log FILES
+    src/log/Logger.cpp
 )
 
-source_group(src FILES src/LogFacade.cpp)
+add_library(toolboxcpp          STATIC EXCLUDE_FROM_ALL ${SOURCES})
+target_include_directories(toolboxcpp        PUBLIC include PRIVATE src)
 
-add_library(log_facade          STATIC ${SOURCES})
-target_include_directories(log_facade PUBLIC include PRIVATE src)
+add_library(toolboxcpp_shared   SHARED EXCLUDE_FROM_ALL ${SOURCES})
+target_include_directories(toolboxcpp_shared PUBLIC include PRIVATE src)
 
-add_library(log_facade_shared   SHARED ${SOURCES})
-target_include_directories(log_facade_shared PUBLIC include PRIVATE src)
-
-if(LOG_FACADE_TESTS)
+if(TOOLBOXCPP_TESTS)
     enable_testing()
     option(gtest_force_shared_crt "" ON)
     add_subdirectory(googletest/googletest)
-    add_executable(log_facade_unittest src/unittest.cpp)
-    target_link_libraries(log_facade_unittest gtest_main log_facade)
-    add_test(NAME log_facade_unittest COMMAND $<TARGET_FILE:log_facade_unittest>)
+    set(UNITTESTS Log)
+    
+    foreach(I ${UNITTESTS})
+        add_executable(${I}_unittest test/${I}.cpp)
+        target_link_libraries(${I}_unittest gtest_main toolboxcpp)
+        add_test(NAME "${I}-unittest" COMMAND $<TARGET_FILE:${I}_unittest>)
+        set_tests_properties("${I}-unittest" PROPERTIES DEPENDS ${I}_unittest)
+    endforeach()
 endif()

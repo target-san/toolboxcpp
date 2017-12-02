@@ -1,13 +1,17 @@
 #pragma once
+/**
+    Expands into structure which contains source file path, line number and function name
+    of the position where macro was expanded. Shorthand for __FILE__, __LINE__, __FUNCTION__ triple.
+ */
+#define $SourceLocation (::toolboxcpp::util::SourceLocation(__FILE__, __LINE__, __FUNCTION__))
 
-#define $SourceLocation (::log_facade::util::SourceLocation(__FILE__, __LINE__, __FUNCTION__))
-
-namespace log_facade
+namespace toolboxcpp
 {
 namespace util
 {
-/** Common-use structure which defines location in source code
- *  Defined in utils because used commonly both in logging and error handling (TBD)
+/**
+    Common-use structure which defines location in source code
+    Defined in utils because used commonly both in logging and error handling (TBD)
  */
 struct SourceLocation
 {

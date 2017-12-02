@@ -3,7 +3,7 @@
 #include <type_traits>
 #include <cassert>
 
-namespace log_facade
+namespace toolboxcpp
 {
 namespace util
 {

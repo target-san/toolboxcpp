@@ -1,7 +1,9 @@
 #pragma once
+
 #include <ostream>
-#include "util/FuncRef.hpp"
-#include "util/SourceLocation.hpp"
+
+#include <toolboxcpp/util/FuncRef.hpp>
+#include <toolboxcpp/util/SourceLocation.hpp>
 /*
     Logging macros - use these to write messages to log
 */
@@ -23,7 +25,7 @@
     
     @param  $identifier String literal which denotes current logging channel
 */
-#define $LogChannel($identifier) static constexpr ::log_facade::Channel __log_facade_get_channel__(::toolboxcpp::log::impl::AdlTag, int) { return ($identifier); }
+#define $LogChannel($identifier) static constexpr ::toolboxcpp::log::Channel __log_facade_get_channel__(::toolboxcpp::log::impl::AdlTag, int) { return ($identifier); }
 /**
     Logging macros which are specialized by severity but allow to specify custom target and location
     May be used in cases where logging macro is invoked through some intermediate code,
@@ -102,10 +104,10 @@ namespace log
     };
     /** @brief Defines log location
      */
-    using Location      = util::SourceLocation; 
+    using Location      = toolboxcpp::util::SourceLocation; 
 
     using Channel       = const char*;
-    using WriterFunc    = util::FuncRef<void(std::ostream&)>;
+    using WriterFunc    = toolboxcpp::util::FuncRef<void(std::ostream&)>;
 
 namespace impl
 {

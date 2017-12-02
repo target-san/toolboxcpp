@@ -7,9 +7,9 @@
 #include <utility>
 #include <sstream>
 
-#include "../Log.hpp"
-#include "Logger.hpp"
-#include "../util/FoldTuple.hpp"
+#include <toolboxcpp/log/Log.hpp>
+#include <toolboxcpp/log/Logger.hpp>
+#include <toolboxcpp/util/FoldTuple.hpp>
 
 namespace toolboxcpp
 {
@@ -183,5 +183,5 @@ namespace log
     {
         return CachedLogger<typename std::decay<L>::type>(std::forward<L>(logger));
     }
-} // namespace logger
-} // namespace log_facade
+} // namespace log
+} // namespace toolboxcpp
