@@ -24,7 +24,7 @@ public:
         return true;
     }
 
-    void write(Record const& rec, WriterFunc writer) override
+    void write(Record const& rec, WriterFunc) override
     {
         g_last_record = rec;
     }

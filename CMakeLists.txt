@@ -1,11 +1,25 @@
-cmake_minimum_required(VERSION 3.1)
-
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_STANDARD          11)
+cmake_minimum_required(VERSION 2.8.12)
+cmake_policy(SET CMP0054 NEW) # Otherwise "MSVC" is treated as variable name. Which is a bummer
 
 option(TOOLBOXCPP_TESTS "Add compilation of toolboxcpp's own unittests" OFF)
 
 project(toolboxcpp)
+
+# Works with CMake 3.1 and above
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD          11)
+# Anyway, adjust compiler flags depending on its ID
+message("Detected compiler: ${CMAKE_CXX_COMPILER_ID}")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GCC")
+    message("Compiler: GCC")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    message("Compiler: Clang")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    message("Compiler: MSVC")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4 /WX")
+endif()
 
 set(SOURCES
     include/toolboxcpp/log/Log.hpp
