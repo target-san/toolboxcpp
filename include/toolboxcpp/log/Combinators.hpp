@@ -11,9 +11,9 @@
 #include "Logger.hpp"
 #include "../util/FoldTuple.hpp"
 
-namespace log_facade
+namespace toolboxcpp
 {
-namespace logger
+namespace log
 {
     /** Composes several loggers and sends message to each of them
      */

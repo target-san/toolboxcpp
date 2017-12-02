@@ -6,9 +6,9 @@
     and dumps them into provided stream on-demand
 */
 
-namespace log_facade
+namespace toolboxcpp
 {
-namespace logger
+namespace log
 {
 
 template<typename... Args>
