@@ -1,14 +1,14 @@
 #pragma once
 /** Standard logging sinks
  */
-#include "Logger.hpp"
+#include <toolboxcpp/log/Logger.hpp>
 
 #include <iostream>
 #include <fstream>
 
-namespace log_facade
+namespace toolboxcpp
 {
-namespace logger
+namespace log
 {
     /** Writes all messages to standard output stream
      */

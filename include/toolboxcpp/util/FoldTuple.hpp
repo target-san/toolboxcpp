@@ -4,7 +4,7 @@
 /** Templated fold function over tuples of arbitrary arity
 */
 
-namespace log_facade
+namespace toolboxcpp
 {
 namespace util
 {

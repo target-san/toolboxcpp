@@ -1,12 +1,13 @@
 #pragma once
 
+#include <toolboxcpp/log/Log.hpp>
+
 #include <chrono>
 #include <memory>
-#include "../Log.hpp"
 
-namespace log_facade
+namespace toolboxcpp
 {
-namespace logger
+namespace log
 {
     /** Contains basic metadata about log record, needed to determine if record should be written
      *  Passed to Logger's `is_enabled` method
@@ -94,5 +95,5 @@ namespace logger
         // If no exception would occur, box pointer will be released
         box.release();
     }
-} // namespace logger
-} // namespace log_facade
+} // namespace log
+} // namespace toolboxcpp
