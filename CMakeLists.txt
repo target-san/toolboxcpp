@@ -23,20 +23,26 @@ set(SOURCES
     include/toolboxcpp/log/Combinators.hpp
     include/toolboxcpp/log/Sinks.hpp
     include/toolboxcpp/log/DefaultFmt.hpp
-    
+
     src/log/Logger.cpp
+
+    include/toolboxcpp/errors/Errors.hpp
 
     include/toolboxcpp/util/FuncRef.hpp
     include/toolboxcpp/util/FoldTuple.hpp
     include/toolboxcpp/util/SourceLocation.hpp
 )
 
-source_group(include\\toolboxcpp\\log FILES    
+source_group(include\\toolboxcpp\\log FILES
     include/toolboxcpp/log/Log.hpp
     include/toolboxcpp/log/Logger.hpp
     include/toolboxcpp/log/Combinators.hpp
     include/toolboxcpp/log/Sinks.hpp
     include/toolboxcpp/log/DefaultFmt.hpp
+)
+
+source_group(include\\toolboxcpp\\errors FILES
+    include/toolbox/errors/Errors.hpp
 )
 
 source_group(include\\toolboxcpp\\util FILES
