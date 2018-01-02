@@ -1,6 +1,7 @@
 #include <ostream>
 #include <sstream>
 #include <type_traits>
+#include <type_info>
 
 /** @defgroup errors_impl Implementation details of errors handling infrastructure
  *  @{
@@ -11,6 +12,91 @@ namespace except
 {
 namespace impl
 {
+    // Declare expression validity checker for certain type
+    // Haven't found generic way to check if arbitrary expression is valid
+#   define $DeclareIsXDefinedFor($name, $expr)                      \
+    template<typename T, typename = void>                           \
+    struct Is ## $name ## DefinedFor : public std::false_type {};   \
+    template<typename T>                                            \
+    struct Is ## $name ## DefinedFor<T, decltype(($expr, void()))>  \
+        : public std::true_type {};                                 \
+    /**/
+
+    $DeclareIsXDefinedFor(MethodMessage, std::declval<typename std::decay<T>::type const&>().message(std::declval<std::ostream&>()))
+    $DeclareIsXDefinedFor(FuncMessage,   message(std::declval<std::ostream&>(), std::declval<typename std::decay<T>::type const&>()))
+
+    $DeclareIsXDefinedFor(MethodDetails, std::declval<typename std::decay<T>::type const&>().details(std::declval<std::ostream&>()))
+    $DeclareIsXDefinedFor(FuncDetails,   details(std::declval<std::ostream&>(), std::declval<typename std::decay<T>::type const&>()))
+
+#   undef  $DeclareIsXDefinedFor
+
+    template<size_t I>
+    using Index = std::integral_constant<size_t, I>;
+    // Helper struct, returns amount of remaining bools when 1st of them is true
+    // Effectively returns "inverted" index of 1st true value
+    template<bool... Bs> struct BoolPriority;
+    template<bool... Bs> struct BoolPriority<true, Bs...> : public Index<sizeof...(Bs) + 1u> {};
+    template<>           struct BoolPriority<>            : public Index<0> {};
+    template<bool... Bs> struct BoolPriority<false, Bs...>: public BoolPriority<Bs...> {};
+
+    template<typename E>
+    void display_message_impl(std::ostream& ost, E const& error, Index<2>)
+    {
+        error.message(ost);
+    }
+
+    template<typename E>
+    void display_message_impl(std::ostream& ost, E const& error, Index<1>)
+    {
+        message(ost, error);
+    }
+
+    template<typename E>
+    void display_message_impl(std::ostream& ost, E const& error, Index<0>)
+    {
+        ost << typeid(E).name();
+    }
+
+    template<typename E>
+    void display_details_impl(std::ostream& ost, E const& error, Index<2>)
+    {
+        ost << "\n";
+        error.details(ost);
+    }
+
+    template<typename E>
+    void display_details_impl(std::ostream& ost, E const& error, Index<1>)
+    {
+        ost << "\n";
+        details(ost, error);
+    }
+
+    template<typename E>
+    void display_details_impl(std::ostream& ost, E const& error, Index<0>)
+    { }
+
+    template<typename E>
+    void display_message(std::ostream& ost, E const& error)
+    {
+        display_message_impl(ost, error,
+            BoolPriority<
+                IsMethodMessageDefinedFor<E>::value,
+                IsFuncMessageDefinedFor<E>::value
+            >()
+        );
+    }
+
+    template<typename E>
+    void display_details(std::ostream& ost, E const& error)
+    {
+        display_details_impl(ost, error,
+            BoolPriority<
+                IsMethodDetailsDefinedFor<E>::value,
+                IsFuncDetailsDefinedFor<E>::value
+            >()
+        );
+    }
+
     inline void display_location(std::ostream& ost, ::toolboxcpp::util::SourceLocation loc)
     {
         if(loc.file && *loc.file)
@@ -22,37 +108,12 @@ namespace impl
         if(loc.func && *loc.func)
             ost << " (" << loc.func << ")";
     }
-
+    
     template<typename D>
-    struct FailureImplBase
+    struct WhatCache
     {
     protected:
-        FailureImplBase()
-            : _loc()
-        { }
-    
-        FailureImplBase(util::SourceLocation loc)
-            : _loc(loc)
-        { }
-
-        void display_loc(std::ostream& ost)
-        {
-            if(_loc.file && *_loc.file)
-                ost << _loc.file;
-            else
-                ost << "<unknown>";
-            if(_loc.line != 0)
-                ost << ":" << _loc.line;
-            ost << " (";
-            if(_loc.func && *_loc.func)
-                ost << _loc.func;
-            else
-                ost << "<unknown>";
-            ost << ")";
-
-        }
-
-        const char* what_impl() const noexcept
+        const char* what_cached() const noexcept
         {
             if(_cache.empty())
             {
@@ -63,70 +124,111 @@ namespace impl
             return _cache.c_str();
         }
     private:
-        util::SourceLocation _loc;
         mutable std::string  _cache;
     };
-    /** Wraps any structure and makes it derived from both std::exception and errors::Failure
-     *  Such structure must have
-     */
+    // Keeps location and provides ways to print it
+    struct DisplayLoc
+    {
+    protected:
+        DisplayLoc(::toolboxcpp::util::SourceLocation loc)
+            : _loc(loc)
+        { }
+
+        void display_loc(std::ostream& ost)
+        {
+            ost << "\n    at ";
+            display_location(ost, _loc);
+        }
+
+    private:
+        ::toolboxcpp::util::SourceLocation _loc;
+    };
+    /**
+    Use E::message and E::details to implement both Failure::display and std::exception::what
+    */
     template<typename E>
     struct StructFailure
         : public E
         , public Failure
         , public std::exception
+        , public WhatCache<StructFailure<E>>
+        , public DisplayLoc
     {
-        AnyFailure(E const& that, util::SourceLocation loc)
+        StructFailure(E const& that, util::SourceLocation loc)
             : E(that)
-            , FailureImplBase(loc)
+            , DisplayLoc(loc)
         { }
 
-        AnyFailure(E&& that, util::SourceLocation loc)
+        StructFailure(E&& that, util::SourceLocation loc)
             : E(std::move(that))
-            , FailureImplBase(loc)
+            , DisplayLoc(loc)
         { }
 
         void display(std::ostream& ost) const override
         {
-            // TODO: type-based selector for E's brief, details etc.
-            E::brief(ost);
-            ost << "\n    at ";
+            display_message<E>(ost, *this);
             display_loc(ost);
-            ost << "\n";
-            E::details(ost);
+            display_details<E>(ost, *this);
         } 
 
         const char* what() const noexcept override
         {
-            return what_impl();
+            return what_cached();
         }
     };
-    /** Wraps any class derived from std::exception to make it compatible with errors::Failure
-     */
+    // Use std::exception::what provided by E to implement Failure::display
     template<typename E>
-    struct ExceptionFailure
+    struct StdFailure
         : public E
         , public Failure
-        , public FailureImplBase<ExceptionFailure<E>>
+        , public WhatCache<StdFailure<E>>
+        , public DisplayLoc
     {
-        ExceptionFailure(E const& ex, util::SourceLocation loc)
+        StdFailure(E const& ex, ::toolboxcpp::util::SourceLocation loc)
             : E(ex)
-            , FailureImplBase(loc)
+            , DisplayLoc(loc)
         { }
         
-        ExceptionFailure(E&& ex, util::SourceLocation loc)
+        StdFailure(E&& ex, ::toolboxcpp::util::SourceLocation loc)
             : E(std::move(ex))
-            , FailureImplBase(loc)
+            , DisplayLoc(loc)
         { }
 
         void display(std::ostream& ost) const override
         {
-            ost << E::what() << "\n    at ";
+            ost << E::what();
             display_loc(ost);
         }
 
         const char* what() const noexcept override
         {
-            return what_impl();
+            return what_cached();
+        }
+    };
+    // Use Failure::display provided by E to implement std::exception::what
+    template<typename E>
+    struct ExceptFailure
+        : public E
+        , public std::exception
+        , public WhatCache<ExceptFailure<E>>
+    {
+        ExceptFailure(E const& error)
+            : E(error)
+        { }
+
+        ExceptFailure(E&& error)
+            : E(std::move(error))
+        { }
+
+        ExceptFailure(ExceptFailure const&) = default;
+        ExceptFailure(ExceptFailure &&)     = default;
+
+        ExceptFailure& operator=(ExceptFailure const&) = default;
+        ExceptFailure& operator=(ExceptFailure &&)     = default;
+
+        const char* what() const noexcept override
+        {
+            return what_cached();
         }
     };
 
@@ -217,25 +319,30 @@ namespace impl
     
     inline std::ostream& operator << (std::ostream& ost, ExceptionPtrDisplayer const& disp)
     {
+        static constexpr const char INITIAL[] = "Exception: ", FOLLOW = "Caused by: ";
+        const char* prefix = INITIAL;
         enum_exception_chain(disp.ptr,
             [&] (util::FuncRef<void()> rethrow)
             {
+                ost << prefix;
                 try
                 {
                     rethrow();
                 }
                 catch(errors::Failure& e)
                 {
-                    ost << e << "\n";
+                    ost << e;
                 }
                 catch(std::exception& e)
                 {
-                    ost << e.what() << "\n";
+                    ost << e.what();
                 }
                 catch(...)
                 {
-                    ost << "Non-C++ exception\n";
+                    ost << "Non-C++ exception";
                 }
+                ost << "\n";
+                prefix = FOLLOW;
             }
         );
         return ost;
@@ -261,7 +368,7 @@ namespace impl
         template<typename E>
         [[noreturn]] void operator %= (E&& error)
         {
-            ::errors::raise(std::forward<E>(error), loc);            
+            ::toolboxcpp::except::raise_at(std::forward<E>(error), loc);            
         }
     };
     
@@ -285,7 +392,7 @@ namespace impl
             }
             catch(...)
             {
-                ::errors::raise(error_fn(), loc);
+                ::toolboxcpp::except::raise_at(error_fn(), loc);
             }
         }
     };
@@ -296,48 +403,8 @@ namespace impl
         return ErrorContext<typename std::decay<E>::type> { loc, std::forward<E>(error_fn) };
     }
 
-    /** Shows whole exception chain as exception's cause
-     */
-    struct DetailedFailure
-        : public std::exception
-        , public Failure
-        , public FailureImplBase<DetailedFailure>
-    {
-        DetailedFailure(std::exception_ptr ptr)
-            : ptr(ptr)
-        { }
-
-        void display(std::ostream& ost) const override
-        {
-            ost << display_exception(ptr);
-        }
-
-        const char* what() const noexcept override
-        {
-            return what_impl();
-        }
-
-    private:
-        std::exception_ptr ptr;
-    };
 }//namespace impl
 
-    [[noreturn]] void rethrow_with_detailed_cause(std::exception_ptr ex)
-    {
-        try
-        {
-            std::rethrow_exception(ex);
-        }
-        catch(std::nested_exception&)
-        {
-            throw impl::DetailedFailure(std::current_exception());            
-        }
-    }
-
-    [[noreturn]] void rethrow_current_with_detailed_cause()
-    {
-        rethrow_with_detailed_cause(std::current_exception());
-    }
 /// @}
 
 }//namespace errors
