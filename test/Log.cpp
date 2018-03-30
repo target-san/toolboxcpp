@@ -50,42 +50,44 @@ TEST_CASE("Logger basic init", "")
 
 TEST_CASE("Logging severities", "")
 {
+    using Catch::Matchers::Equals;
+
     Severity sev {};
     Channel chan {};
     Location loc {};
     // NB: we set local meta on the same line as log message, to ensure it's the same
     $log_error("Say Hi to the world!"); sev = Severity::Error; chan = $LogCurrentChannel; loc = $LogCurrentLocation;
-    CHECK(g_last_metadata.severity      == sev);
-    CHECK(g_last_metadata.channel       == chan);
-    CHECK(g_last_metadata.location.file == loc.file);
-    CHECK(g_last_metadata.location.line == loc.line);
-    CHECK(g_last_metadata.location.func == loc.func);
+    CHECK     (g_last_metadata.severity      == sev);
+    CHECK_THAT(g_last_metadata.channel       ,  Equals(chan));
+    CHECK_THAT(g_last_metadata.location.file ,  Equals(loc.file));
+    CHECK     (g_last_metadata.location.line == loc.line);
+    CHECK_THAT(g_last_metadata.location.func ,  Equals(loc.func));
 
     $log_warn("Say Hi to the world!"); sev = Severity::Warning; chan = $LogCurrentChannel; loc = $LogCurrentLocation;
-    CHECK(g_last_metadata.severity      == sev);
-    CHECK(g_last_metadata.channel       == chan);
-    CHECK(g_last_metadata.location.file == loc.file);
-    CHECK(g_last_metadata.location.line == loc.line);
-    CHECK(g_last_metadata.location.func == loc.func);
+    CHECK     (g_last_metadata.severity      == sev);
+    CHECK_THAT(g_last_metadata.channel       ,  Equals(chan));
+    CHECK_THAT(g_last_metadata.location.file ,  Equals(loc.file));
+    CHECK     (g_last_metadata.location.line == loc.line);
+    CHECK_THAT(g_last_metadata.location.func ,  Equals(loc.func));
 
     $log_info("Say Hi to the world!"); sev = Severity::Info; chan = $LogCurrentChannel; loc = $LogCurrentLocation;
-    CHECK(g_last_metadata.severity      == sev);
-    CHECK(g_last_metadata.channel       == chan);
-    CHECK(g_last_metadata.location.file == loc.file);
-    CHECK(g_last_metadata.location.line == loc.line);
-    CHECK(g_last_metadata.location.func == loc.func);
+    CHECK     (g_last_metadata.severity      == sev);
+    CHECK_THAT(g_last_metadata.channel       ,  Equals(chan));
+    CHECK_THAT(g_last_metadata.location.file ,  Equals(loc.file));
+    CHECK     (g_last_metadata.location.line == loc.line);
+    CHECK_THAT(g_last_metadata.location.func ,  Equals(loc.func));
 
     $log_debug("Say Hi to the world!"); sev = Severity::Debug; chan = $LogCurrentChannel; loc = $LogCurrentLocation;
-    CHECK(g_last_metadata.severity      == sev);
-    CHECK(g_last_metadata.channel       == chan);
-    CHECK(g_last_metadata.location.file == loc.file);
-    CHECK(g_last_metadata.location.line == loc.line);
-    CHECK(g_last_metadata.location.func == loc.func);
+    CHECK     (g_last_metadata.severity      == sev);
+    CHECK_THAT(g_last_metadata.channel       ,  Equals(chan));
+    CHECK_THAT(g_last_metadata.location.file ,  Equals(loc.file));
+    CHECK     (g_last_metadata.location.line == loc.line);
+    CHECK_THAT(g_last_metadata.location.func ,  Equals(loc.func));
 
     $log_trace("Say Hi to the world!"); sev = Severity::Trace; chan = $LogCurrentChannel; loc = $LogCurrentLocation;
-    CHECK(g_last_metadata.severity      == sev);
-    CHECK(g_last_metadata.channel       == chan);
-    CHECK(g_last_metadata.location.file == loc.file);
-    CHECK(g_last_metadata.location.line == loc.line);
-    CHECK(g_last_metadata.location.func == loc.func);
+    CHECK	  (g_last_metadata.severity      == sev);
+    CHECK_THAT(g_last_metadata.channel       ,  Equals(chan));
+    CHECK_THAT(g_last_metadata.location.file ,  Equals(loc.file));
+    CHECK	  (g_last_metadata.location.line == loc.line);
+    CHECK_THAT(g_last_metadata.location.func ,  Equals(loc.func));
 }
