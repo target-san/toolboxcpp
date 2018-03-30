@@ -13,7 +13,7 @@ namespace log
     Globally shared logger instance, with side-attached destructor
 */
 namespace {
-    std::atomic<Logger*> g_logger(nullptr);
+    std::atomic<Logger*> g_logger;
 
     void initMeta(Severity sev, Channel chan, Location loc, Metadata& meta)
     {
