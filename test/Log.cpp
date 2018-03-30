@@ -1,9 +1,11 @@
-#include <gtest/gtest.h>
+#define CATCH_CONFIG_MAIN
+#include <catch.hpp>
 #define LOG_DETAILED
 #include <toolboxcpp/log/Log.hpp>
 #include <toolboxcpp/log/Logger.hpp>
 
 #include <stdexcept>
+#include <iostream>
 
 using namespace toolboxcpp::log;
 // These are used to get what's received by logger methods
@@ -38,52 +40,52 @@ struct DummyLogger
     void write(Record const&, WriterFunc) {}
 };
 
-TEST(Log, BasicInit)
+TEST_CASE("Logger basic init", "")
 {
     // Ensure nullptr is checked
-    EXPECT_THROW(set_logger_pointer(nullptr), std::invalid_argument);
+    CHECK_THROWS_AS(set_logger_pointer(nullptr), std::invalid_argument);
     // Ensure no double-init
-    EXPECT_THROW(set_logger(DummyLogger()), std::logic_error);
+    CHECK_THROWS_AS(set_logger(DummyLogger()), std::logic_error);
 }
 
-TEST(Log, Severities)
+TEST_CASE("Logging severities", "")
 {
     Severity sev {};
     Channel chan {};
     Location loc {};
     // NB: we set local meta on the same line as log message, to ensure it's the same
     $log_error("Say Hi to the world!"); sev = Severity::Error; chan = $LogCurrentChannel; loc = $LogCurrentLocation;
-    EXPECT_EQ   (g_last_metadata.severity, sev);
-    EXPECT_STREQ(g_last_metadata.channel,  chan);
-    EXPECT_STREQ(g_last_metadata.location.file, loc.file);
-    EXPECT_EQ   (g_last_metadata.location.line, loc.line);
-    EXPECT_STREQ(g_last_metadata.location.func, loc.func);
+    CHECK(g_last_metadata.severity      == sev);
+    CHECK(g_last_metadata.channel       == chan);
+    CHECK(g_last_metadata.location.file == loc.file);
+    CHECK(g_last_metadata.location.line == loc.line);
+    CHECK(g_last_metadata.location.func == loc.func);
 
     $log_warn("Say Hi to the world!"); sev = Severity::Warning; chan = $LogCurrentChannel; loc = $LogCurrentLocation;
-    EXPECT_EQ   (g_last_metadata.severity, sev);
-    EXPECT_STREQ(g_last_metadata.channel,  chan);
-    EXPECT_STREQ(g_last_metadata.location.file, loc.file);
-    EXPECT_EQ   (g_last_metadata.location.line, loc.line);
-    EXPECT_STREQ(g_last_metadata.location.func, loc.func);
+    CHECK(g_last_metadata.severity      == sev);
+    CHECK(g_last_metadata.channel       == chan);
+    CHECK(g_last_metadata.location.file == loc.file);
+    CHECK(g_last_metadata.location.line == loc.line);
+    CHECK(g_last_metadata.location.func == loc.func);
 
     $log_info("Say Hi to the world!"); sev = Severity::Info; chan = $LogCurrentChannel; loc = $LogCurrentLocation;
-    EXPECT_EQ   (g_last_metadata.severity, sev);
-    EXPECT_STREQ(g_last_metadata.channel,  chan);
-    EXPECT_STREQ(g_last_metadata.location.file, loc.file);
-    EXPECT_EQ   (g_last_metadata.location.line, loc.line);
-    EXPECT_STREQ(g_last_metadata.location.func, loc.func);
+    CHECK(g_last_metadata.severity      == sev);
+    CHECK(g_last_metadata.channel       == chan);
+    CHECK(g_last_metadata.location.file == loc.file);
+    CHECK(g_last_metadata.location.line == loc.line);
+    CHECK(g_last_metadata.location.func == loc.func);
 
     $log_debug("Say Hi to the world!"); sev = Severity::Debug; chan = $LogCurrentChannel; loc = $LogCurrentLocation;
-    EXPECT_EQ   (g_last_metadata.severity, sev);
-    EXPECT_STREQ(g_last_metadata.channel,  chan);
-    EXPECT_STREQ(g_last_metadata.location.file, loc.file);
-    EXPECT_EQ   (g_last_metadata.location.line, loc.line);
-    EXPECT_STREQ(g_last_metadata.location.func, loc.func);
+    CHECK(g_last_metadata.severity      == sev);
+    CHECK(g_last_metadata.channel       == chan);
+    CHECK(g_last_metadata.location.file == loc.file);
+    CHECK(g_last_metadata.location.line == loc.line);
+    CHECK(g_last_metadata.location.func == loc.func);
 
     $log_trace("Say Hi to the world!"); sev = Severity::Trace; chan = $LogCurrentChannel; loc = $LogCurrentLocation;
-    EXPECT_EQ   (g_last_metadata.severity, sev);
-    EXPECT_STREQ(g_last_metadata.channel,  chan);
-    EXPECT_STREQ(g_last_metadata.location.file, loc.file);
-    EXPECT_EQ   (g_last_metadata.location.line, loc.line);
-    EXPECT_STREQ(g_last_metadata.location.func, loc.func);
+    CHECK(g_last_metadata.severity      == sev);
+    CHECK(g_last_metadata.channel       == chan);
+    CHECK(g_last_metadata.location.file == loc.file);
+    CHECK(g_last_metadata.location.line == loc.line);
+    CHECK(g_last_metadata.location.func == loc.func);
 }
