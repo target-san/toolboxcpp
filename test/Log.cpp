@@ -40,7 +40,7 @@ struct DummyLogger
     void write(Record const&, WriterFunc) {}
 };
 
-TEST_CASE("Logger basic init", "")
+TEST_CASE("Logger basic init")
 {
     // Ensure nullptr is checked
     CHECK_THROWS_AS(set_logger_pointer(nullptr), std::invalid_argument);
@@ -48,7 +48,7 @@ TEST_CASE("Logger basic init", "")
     CHECK_THROWS_AS(set_logger(DummyLogger()), std::logic_error);
 }
 
-TEST_CASE("Logging severities", "")
+TEST_CASE("Logging severities")
 {
     using Catch::Matchers::Equals;
 

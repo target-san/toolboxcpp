@@ -36,8 +36,7 @@ namespace {
         if(!logger)
             throw std::invalid_argument("logger");
         Logger* expected = nullptr;
-        // TODO: select proper ordering
-        if(!g_logger.compare_exchange_weak(expected, logger))
+        if(!g_logger.compare_exchange_weak(expected, logger, std::memory_order_acq_rel, std::memory_order_relaxed))
             throw std::logic_error("Logger already initialized");
     }
 
@@ -45,8 +44,7 @@ namespace impl
 {
     bool is_enabled(Severity sev, Channel chan, Location loc)
     {
-        // TODO: select proper ordering
-        Logger* logger = g_logger; // obtain local pointer
+        Logger* logger = g_logger.load(std::memory_order_relaxed);
         if(logger == nullptr)
             return false;
         Metadata meta;
@@ -56,8 +54,7 @@ namespace impl
 
     void write(Severity sev, Channel chan, Location loc, WriterFunc writer)
     {
-        // TODO: select proper ordering
-        Logger* logger = g_logger;
+        Logger* logger = g_logger.load(std::memory_order_relaxed);
         if(logger == nullptr)
             return;
         Record record;
